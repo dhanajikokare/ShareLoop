@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Rental Booking {{ booking.booking_reference }} — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-900">
+  <!-- Breadcrumb -->
+  <nav class="sl-breadcrumb-nav" aria-label="breadcrumb">
+    <ol class="breadcrumb sl-breadcrumb mb-3">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'rentals:my_rentals' %}">Rentals</a></li>
+      <li class="breadcrumb-item active" aria-current="page" title="{{ booking.booking_reference }}" aria-label="{{ booking.booking_reference }}">{{ booking.booking_reference }}</li>
+    </ol>
+  </nav>
+
+  <!-- Top Header with Status -->
+  <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h1 class="h3 fw-bold mb-0">Booking #{{ booking.booking_reference }}</h1>
+          {% if booking.status == 'COMPLETED' %}
+            <span class="badge bg-success-subtle text-success border border-success px-3 py-1 fs-6">Completed</span>
+          {% elif booking.status == 'ACTIVE' %}
+            <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 fs-6">Active Handover</span>
+          {% elif booking.status == 'ACCEPTED' %}
+            <span class="badge bg-info-subtle text-info border border-info px-3 py-1 fs-6">Accepted (Payment / Pickup Ready)</span>
+          {% elif booking.status == 'PENDING' %}
+            <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-1 fs-6">Pending Owner Approval</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary px-3 py-1 fs-6">{{ booking.get_status_display }}</span>
+          {% endif %}
+        </div>
+        <p class="text-muted small mb-0">Created on {{ booking.created_at|date:"d M Y, h:i A" }}</p>
+      </div>
+
+      <!-- Action Buttons depending on role and status -->
+      <div class="d-flex flex-wrap gap-2">
+        {% if is_owner and booking.status == 'PENDING' %}
+          <form method="post" action="{% url 'rentals:accept_rental' booking.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success fw-semibold btn-sm px-3">
+              <i class="bi bi-check-lg me-1"></i> Accept Booking
+            </button>
+          </form>
+          <button class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#rejectModal">
+            Decline
+          </button>
+        {% endif %}
+
+        {% if is_renter and booking.status == 'ACCEPTED' %}
+          <a href="{% url 'payments:checkout_rental' booking.id %}" class="btn btn-sl-teal btn-sm px-4 fw-semibold">
+            <i class="bi bi-credit-card me-1"></i> Pay Now (₹{{ booking.total_amount|intcomma }})
+          </a>
+        {% endif %}
+
+        {% if booking.status in 'ACCEPTED,CONFIRMED' %}
+          <form method="post" action="{% url 'rentals:mark_active' booking.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm px-3 fw-semibold">
+              <i class="bi bi-box-arrow-up me-1"></i> Confirm Item Handover
+            </button>
+          </form>
+        {% endif %}
+
+        {% if is_owner and booking.status == 'ACTIVE' %}
+          <form method="post" action="{% url 'rentals:mark_completed' booking.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-sm px-3 fw-semibold" onclick="return confirm('Confirm that the item was returned safely and release the security deposit?');">
+              <i class="bi bi-check2-circle me-1"></i> Confirm Safe Return & Release Deposit
+            </button>
+          </form>
+        {% endif %}
+
+        {% if booking.status == 'COMPLETED' %}
+          <a href="{% url 'reviews:create_review' %}?type=RENTAL&id={{ booking.id }}" class="btn btn-outline-primary btn-sm px-3 fw-semibold">
+            <i class="bi bi-star me-1"></i> Leave a Review
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Item & Dates -->
+    <div class="col-lg-7">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Rented Product Details</h5>
+        <div class="d-flex gap-3 align-items-center mb-3">
+          {% if booking.listing.primary_image %}
+            <img src="{{ booking.listing.primary_image.image.url }}" alt="{{ booking.listing.title }}" class="rounded border" width="70" height="70" style="object-fit:cover;" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+          {% else %}
+            <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ booking.listing.title }}" class="rounded border" width="70" height="70" style="object-fit:cover;">
+          {% endif %}
+          <div>
+            <h6 class="fw-bold mb-1">
+              <a href="{% url 'listings:detail' booking.listing.id booking.listing.slug %}" class="text-dark text-decoration-none">
+                {{ booking.listing.title }}
+              </a>
+            </h6>
+            <div class="small text-muted">{{ booking.listing.category.name }} &middot; Locality: {{ booking.listing.locality }}, Pune</div>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 rounded-3 small">
+          <div class="row g-2">
+            <div class="col-6">
+              <span class="text-muted d-block">Pickup Date:</span>
+              <strong class="fs-6 text-dark">{{ booking.start_date|date:"D, d M Y" }}</strong>
+            </div>
+            <div class="col-6">
+              <span class="text-muted d-block">Return Date:</span>
+              <strong class="fs-6 text-dark">{{ booking.end_date|date:"D, d M Y" }}</strong>
+            </div>
+            <div class="col-12 mt-2 pt-2 border-top">
+              <span class="text-muted">Total Rental Duration:</span> <strong>{{ booking.total_days }} Day{{ booking.total_days|pluralize }}</strong>
+            </div>
+          </div>
+        </div>
+
+        {% if booking.renter_message %}
+          <div class="mt-3">
+            <span class="small text-muted fw-semibold">Message from Renter:</span>
+            <p class="small text-secondary p-2 bg-white border rounded mt-1 mb-0">{{ booking.renter_message }}</p>
+          </div>
+        {% endif %}
+
+        {% if booking.rejection_reason %}
+          <div class="alert alert-danger small mt-3 mb-0">
+            <strong>Decline Reason:</strong> {{ booking.rejection_reason }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Parties Involved -->
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Transaction Participants</h5>
+        <div class="row g-3 small">
+          <div class="col-6">
+            <span class="text-muted d-block">Item Owner:</span>
+            <strong>{{ booking.listing.owner.display_name }}</strong>
+            <div class="text-muted">{{ booking.listing.owner.phone_number }}</div>
+          </div>
+          <div class="col-6">
+            <span class="text-muted d-block">Renter:</span>
+            <strong>{{ booking.renter.display_name }}</strong>
+            <div class="text-muted">{{ booking.renter.phone_number }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Handover Evidence Card -->
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold fs-6 mb-0"><i class="bi bi-camera-fill text-teal me-2"></i> Handover & Return Evidence</h5>
+          {% if booking.status in 'ACCEPTED,CONFIRMED,ACTIVE,RETURN_PENDING' %}
+            <a href="{% url 'reviews:add_evidence' %}?booking_id={{ booking.id }}" class="btn btn-sm btn-outline-teal">
+              <i class="bi bi-plus-lg me-1"></i> Log Evidence
+            </a>
+          {% endif %}
+        </div>
+        <p class="small text-muted mb-3">
+          Timestamped photo logs protecting both parties regarding physical condition at pickup and return.
+        </p>
+
+        {% for log in handover_logs %}
+          <div class="p-3 bg-light rounded-3 mb-2 small">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold text-navy">{{ log.get_log_type_display }}</span>
+              <span class="text-muted">{{ log.timestamp|date:"d M Y, h:i A" }}</span>
+            </div>
+            <div class="text-muted mb-1">Condition: <strong>{{ log.get_item_condition_display }}</strong> &middot; Recorded by {{ log.recorded_by.display_name }}</div>
+            {% if log.notes %}<p class="text-secondary mb-1">{{ log.notes }}</p>{% endif %}
+            {% if log.evidence_photo %}
+              <div class="mt-2">
+                <a href="{{ log.evidence_photo.url }}" target="_blank">
+                  <img src="{{ log.evidence_photo.url }}" alt="Evidence" class="rounded border" width="100" height="80" style="object-fit:cover;">
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="small text-muted mb-0">No handover photos logged yet. Take a quick photo at pickup to document condition.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Column: Cost Breakdown -->
+    <div class="col-lg-5">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Financial Cost Breakdown</h5>
+        
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span class="text-muted">Rental Rate (₹{{ booking.daily_rate }} &times; {{ booking.total_days }}d):</span>
+          <span class="fw-semibold text-dark">₹{{ booking.rental_fee|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span class="text-muted">Refundable Security Deposit:</span>
+          <span class="fw-semibold text-dark">₹{{ booking.security_deposit|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span class="text-muted">Platform Fee:</span>
+          <span class="fw-semibold text-dark">₹{{ booking.platform_fee|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between pt-3 fw-bold fs-5 text-primary">
+          <span>Total Amount:</span>
+          <span>₹{{ booking.total_amount|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="alert alert-light border small mt-3 mb-0 text-muted">
+          <i class="bi bi-shield-check text-success me-1"></i> Security deposit of ₹{{ booking.security_deposit|floatformat:0 }} is 100% refundable upon return of the item in agreed condition.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4 border-0">
+      <form method="post" action="{% url 'rentals:reject_rental' booking.id %}">
+        {% csrf_token %}
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Decline Rental Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">Please provide a reason to the renter (e.g. personal use, maintenance, conflicting schedule):</p>
+          <textarea name="rejection_reason" class="form-control" rows="3" required placeholder="Reason for declining..."></textarea>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">Decline Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

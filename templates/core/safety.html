@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Trust & Safety Guidelines — ShareLoop Pune{% endblock %}
+
+{% block content %}
+<div class="bg-navy py-5 text-white" style="background-color: var(--sl-navy);">
+  <div class="container text-center">
+    <h1 class="fw-bold mb-2">Trust, Safety & Handover Verification</h1>
+    <p class="text-white-50 fs-5 mb-0">How we protect Pune's sharing community with accountability and real evidence</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- Col 1: Guidelines -->
+    <div class="col-lg-8">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h3 class="h4 fw-bold text-navy mb-3"><i class="bi bi-camera-fill text-teal me-2"></i> The Handover & Return Evidence System</h3>
+        <p class="text-secondary">
+          At ShareLoop, we believe visual documentation prevents misunderstandings. For every rental, loan, or sale, authorized participants can upload timestamped photographs and condition logs.
+        </p>
+        <div class="bg-light p-3 rounded-3 mb-3">
+          <h6 class="fw-bold mb-2">Best Practices for Item Pickup:</h6>
+          <ol class="small text-secondary mb-0 ps-3">
+            <li class="mb-1">Inspect the item together during the physical meeting.</li>
+            <li class="mb-1">Snap 2 to 3 photos showing key angles, accessories, and any pre-existing blemishes or scratches.</li>
+            <li class="mb-1">Upload the photo to the transaction's Handover Log. Both parties can view this record privately.</li>
+          </ol>
+        </div>
+        <div class="bg-light p-3 rounded-3">
+          <h6 class="fw-bold mb-2">Best Practices for Item Return:</h6>
+          <ol class="small text-secondary mb-0 ps-3">
+            <li class="mb-1">Verify that all parts, cords, cases, and accessories are intact.</li>
+            <li class="mb-1">Power on electronic gear to confirm normal operation.</li>
+            <li class="mb-1">Record the final return status. Once confirmed, security deposits are immediately eligible for release.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h3 class="h4 fw-bold text-navy mb-3"><i class="bi bi-shield-lock-fill text-primary me-2"></i> Private Data & Upload Protection</h3>
+        <p class="text-secondary small">
+          Evidence photos and handover notes are strictly protected by server-side object authorization. Only the specific transaction participants (lender & borrower, or buyer & seller) and authorized administrative moderators have access to private handover records.
+        </p>
+      </div>
+
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h3 class="h4 fw-bold text-navy mb-3"><i class="bi bi-flag-fill text-danger me-2"></i> Reporting Suspicious Activity</h3>
+        <p class="text-secondary small">
+          Every product listing and user profile features an easy-to-use <strong>Report</strong> button. If you spot counterfeit goods, fraudulent rental pricing, or inappropriate behavior, our administrative team reviews all submissions within 24 hours.
+        </p>
+      </div>
+    </div>
+
+    <!-- Col 2: Sidebar Tips -->
+    <div class="col-lg-4">
+      <div class="card p-4 border-0 shadow-sm rounded-4 bg-teal text-white mb-4" style="background-color: var(--sl-teal);">
+        <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill me-1"></i> Meeting in Pune</h5>
+        <p class="small text-white-50 mb-3">
+          When meeting to handover items, prefer well-lit, public locations like Metro stations (Vanaz, Garware College, Nal Stop, Pune Station), popular cafes, or apartment security lobbies.
+        </p>
+        <hr class="border-light opacity-25">
+        <div class="small fw-semibold">
+          <i class="bi bi-telephone-fill me-2"></i> Emergency Helpline: Dial 112
+        </div>
+      </div>
+
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h5 class="fw-bold mb-3">Community Rules</h5>
+        <ul class="list-unstyled small text-secondary d-flex flex-column gap-2 mb-0">
+          <li><i class="bi bi-x-circle-fill text-danger me-2"></i> No hazardous, flammable, or prohibited weapons.</li>
+          <li><i class="bi bi-x-circle-fill text-danger me-2"></i> Never ask for off-platform upfront cash transfers without proof.</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Always communicate politely and respect neighbors' time.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

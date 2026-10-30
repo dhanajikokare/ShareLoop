@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ seller.display_name }} — ShareLoop Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Seller Header Card -->
+  <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+    <div class="d-flex flex-column flex-md-row align-items-md-center gap-4">
+      <!-- Avatar -->
+      <div>
+        {% if seller.avatar %}
+          <img src="{{ seller.avatar.url }}" alt="{{ seller.display_name }}" class="rounded-circle border" width="90" height="90" style="object-fit:cover;">
+        {% else %}
+          <div class="bg-teal text-white rounded-circle d-flex align-items-center justify-content-center fs-2 fw-bold" style="width: 90px; height: 90px; background-color: var(--sl-teal);">
+            {{ seller.display_name|slice:":1"|upper }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Details -->
+      <div class="flex-grow-1">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <h1 class="h3 fw-bold mb-0">{{ seller.display_name }}</h1>
+          {% if seller.is_business_seller %}
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-shop me-1"></i>Business Shop</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary border"><i class="bi bi-person me-1"></i>Community Member</span>
+          {% endif %}
+          <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-shield-check me-1"></i>Active Member</span>
+        </div>
+
+        {% if seller.is_business_seller and seller.profile.shop_description %}
+          <p class="text-secondary small mb-2">{{ seller.profile.shop_description }}</p>
+        {% elif seller.bio %}
+          <p class="text-secondary small mb-2">{{ seller.bio }}</p>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-3 small text-muted">
+          <span><i class="bi bi-calendar3 me-1"></i> Member since {{ seller.date_joined|date:"M Y" }}</span>
+          <span><i class="bi bi-box-seam me-1"></i> {{ active_listings.count }} active listings</span>
+          {% if avg_score %}
+            <span><i class="bi bi-star-fill text-warning me-1"></i> {{ avg_score }} ({{ review_count }} reviews)</span>
+          {% else %}
+            <span><i class="bi bi-star text-muted me-1"></i> No reviews yet</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listings by this Seller -->
+  <h4 class="fw-bold mb-3">Items Shared by {{ seller.display_name }}</h4>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+    {% for item in active_listings %}
+      <div class="col">
+        <div class="sl-card">
+          <div class="sl-card-img-wrapper">
+            {% if item.primary_image %}
+              <img src="{{ item.primary_image.image.url }}" alt="{{ item.title }}" class="sl-card-img" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+            {% else %}
+              <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ item.title }}" class="sl-card-img sl-fallback-img">
+            {% endif %}
+            <div class="sl-card-badges">
+              {% if item.can_rent %}<span class="sl-badge-mode badge-mode-rent"><i class="bi bi-clock"></i> Rent</span>{% endif %}
+              {% if item.can_borrow %}<span class="sl-badge-mode badge-mode-borrow"><i class="bi bi-heart-fill"></i> Free</span>{% endif %}
+              {% if item.can_sell %}<span class="sl-badge-mode badge-mode-sell"><i class="bi bi-tag-fill"></i> Buy</span>{% endif %}
+            </div>
+            <div class="sl-card-locality">
+              <span class="badge bg-dark bg-opacity-75 text-white">
+                <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ item.locality }}
+              </span>
+            </div>
+          </div>
+          <div class="sl-card-body">
+            <h5 class="sl-card-title" title="{{ item.title }}">
+              <a href="{% url 'listings:detail' item.id item.slug %}" class="stretched-link">
+                {{ item.title }}
+              </a>
+            </h5>
+            <div class="mt-auto pt-2 border-top">
+              <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-1">
+                {% if item.can_rent %}
+                  <div class="d-flex align-items-baseline gap-1">
+                    <span class="sl-price-tag">₹{{ item.rent_price_per_day|floatformat:0 }}</span> <span class="sl-price-period">/ day</span>
+                  </div>
+                {% elif item.can_borrow %}
+                  <span class="sl-price-tag text-success">Free to Borrow</span>
+                {% elif item.can_sell %}
+                  <span class="sl-price-tag">₹{{ item.sell_price|floatformat:0 }}</span>
+                {% endif %}
+                <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">{{ item.get_item_condition_display }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-muted py-4">No active listings available from this user right now.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Reviews Section -->
+  <h4 class="fw-bold mb-3">Community Reviews & Ratings ({{ reviews.count }})</h4>
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    {% for rev in reviews %}
+      <div class="border-bottom py-3 {% if forloop.last %}border-0 pb-0{% endif %}">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <div class="fw-bold small">{{ rev.reviewer.display_name }}</div>
+          <div class="text-warning small">
+            {% for _ in "12345"|make_list %}
+              {% if forloop.counter <= rev.rating %}
+                <i class="bi bi-star-fill"></i>
+              {% else %}
+                <i class="bi bi-star"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="small text-muted mb-1">
+          For {{ rev.listing.title }} &middot; {{ rev.created_at|date:"d M Y" }}
+        </div>
+        {% if rev.title %}
+          <div class="fw-semibold small">{{ rev.title }}</div>
+        {% endif %}
+        <p class="small text-secondary mb-0">{{ rev.comment }}</p>
+      </div>
+    {% empty %}
+      <p class="text-muted small mb-0">No reviews received yet. Reviews are posted after verified completed handovers.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

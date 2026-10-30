@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Orders & Sales — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h1 class="h3 fw-bold mb-1">My Orders & Sales</h1>
+    <p class="text-muted small mb-0">View items you purchased as a buyer and products sold to customers in Pune</p>
+  </div>
+
+  <!-- Purchases Tab & Sales Tab -->
+  <ul class="nav nav-pills mb-4 gap-2" id="orderTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active px-4 py-2 fw-semibold" id="bought-tab" data-bs-toggle="pill" data-bs-target="#bought-pane" type="button">
+        <i class="bi bi-bag-check me-1"></i> Purchases ({{ orders_bought.count }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link px-4 py-2 fw-semibold" id="sold-tab" data-bs-toggle="pill" data-bs-target="#sold-pane" type="button">
+        <i class="bi bi-tag me-1"></i> Sales Made ({{ orders_sold.count }})
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="orderTabsContent">
+    <!-- Purchases -->
+    <div class="tab-pane fade show active" id="bought-pane">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light small">
+              <tr>
+                <th>Order Ref</th>
+                <th>Items</th>
+                <th>Seller</th>
+                <th>Total</th>
+                <th>Fulfillment</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody class="small">
+              {% for o in orders_bought %}
+                <tr>
+                  <td class="fw-bold">{{ o.order_number }}</td>
+                  <td>
+                    {% for item in o.items.all %}
+                      <div>{{ item.quantity }}x {{ item.listing.title }}</div>
+                    {% endfor %}
+                  </td>
+                  <td>{{ o.seller.display_name }}</td>
+                  <td class="fw-bold text-navy">₹{{ o.total_amount|intcomma }}</td>
+                  <td>{{ o.get_fulfillment_type_display }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ o.get_status_display }}</span></td>
+                  <td class="text-end">
+                    <a href="{% url 'orders:order_detail' o.id %}" class="btn btn-sm btn-sl-navy py-1 px-3">View</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="7" class="text-center py-5 text-muted">No purchases made yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales -->
+    <div class="tab-pane fade" id="sold-pane">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light small">
+              <tr>
+                <th>Order Ref</th>
+                <th>Items Sold</th>
+                <th>Buyer</th>
+                <th>Net Sales Amount</th>
+                <th>Fulfillment</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody class="small">
+              {% for o in orders_sold %}
+                <tr>
+                  <td class="fw-bold">{{ o.order_number }}</td>
+                  <td>
+                    {% for item in o.items.all %}
+                      <div>{{ item.quantity }}x {{ item.listing.title }}</div>
+                    {% endfor %}
+                  </td>
+                  <td>{{ o.buyer.display_name }}</td>
+                  <td class="fw-bold text-success">₹{{ o.items_total|intcomma }}</td>
+                  <td>{{ o.get_fulfillment_type_display }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ o.get_status_display }}</span></td>
+                  <td class="text-end">
+                    <a href="{% url 'orders:order_detail' o.id %}" class="btn btn-sm btn-sl-teal py-1 px-3">Manage</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="7" class="text-center py-5 text-muted">No sales made yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

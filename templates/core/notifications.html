@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-800">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold mb-1">Your Notifications</h2>
+      <p class="text-muted small mb-0">Stay updated on rental requests, borrow approvals, orders, and messages</p>
+    </div>
+    {% if notifications %}
+      <form method="post" action="{% url 'core:mark_all_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-check2-all me-1"></i> Mark All as Read
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="list-group list-group-flush">
+      {% for n in notifications %}
+        <div class="list-group-item p-3 d-flex justify-content-between align-items-center {% if not n.is_read %}bg-light border-start border-4 border-teal{% endif %}">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="fs-4 mt-1">
+              {% if n.notification_type == 'RENTAL_REQUEST' or n.notification_type == 'RENTAL_STATUS' %}
+                <i class="bi bi-clock-history text-primary"></i>
+              {% elif n.notification_type == 'BORROW_REQUEST' or n.notification_type == 'BORROW_STATUS' %}
+                <i class="bi bi-heart-fill text-success"></i>
+              {% elif n.notification_type == 'ORDER_PLACED' or n.notification_type == 'ORDER_STATUS' %}
+                <i class="bi bi-bag-check-fill text-warning-emphasis"></i>
+              {% elif n.notification_type == 'REVIEW' %}
+                <i class="bi bi-star-fill text-warning"></i>
+              {% else %}
+                <i class="bi bi-bell-fill text-teal"></i>
+              {% endif %}
+            </div>
+            <div>
+              <h6 class="fw-bold mb-1 {% if not n.is_read %}text-dark{% else %}text-muted{% endif %}">
+                {{ n.title }}
+              </h6>
+              <p class="small text-secondary mb-1">{{ n.message }}</p>
+              <span class="text-muted" style="font-size: 0.75rem;">
+                <i class="bi bi-clock me-1"></i>{{ n.created_at|timesince }} ago
+              </span>
+            </div>
+          </div>
+          <div>
+            {% if n.link_url %}
+              <a href="{% url 'core:mark_notification_read' n.id %}" class="btn btn-sm btn-outline-teal">
+                View <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            {% elif not n.is_read %}
+              <a href="{% url 'core:mark_notification_read' n.id %}" class="btn btn-sm btn-light border" title="Mark as read">
+                <i class="bi bi-check-lg"></i>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-bell-slash fs-1 text-secondary opacity-50 mb-3 d-block"></i>
+          <h5 class="fw-semibold">No notifications yet</h5>
+          <p class="small mb-0">When someone requests your items or updates a transaction, you'll see alerts here.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

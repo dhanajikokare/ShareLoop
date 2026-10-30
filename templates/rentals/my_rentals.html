@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Rental Bookings — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">My Rental Bookings</h1>
+      <p class="text-muted small mb-0">Track items you have rented or requested from Pune neighbors</p>
+    </div>
+    <a href="{% url 'listings:browse' %}?mode=rent" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-search me-1"></i> Browse More Rentals
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Booking Ref</th>
+            <th>Item</th>
+            <th>Owner</th>
+            <th>Rental Dates</th>
+            <th>Total Cost</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for b in bookings %}
+            <tr>
+              <td class="fw-bold">{{ b.booking_reference }}</td>
+              <td>
+                <a href="{% url 'listings:detail' b.listing.id b.listing.slug %}" class="text-dark text-decoration-none fw-semibold">
+                  {{ b.listing.title }}
+                </a>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ b.listing.locality }}</div>
+              </td>
+              <td>{{ b.listing.owner.display_name }}</td>
+              <td>{{ b.start_date|date:"d M" }} - {{ b.end_date|date:"d M Y" }} ({{ b.total_days }}d)</td>
+              <td>
+                <div class="fw-bold">₹{{ b.total_amount|intcomma }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">Fee: ₹{{ b.rental_fee }} + Dep: ₹{{ b.security_deposit }}</div>
+              </td>
+              <td>
+                {% if b.status == 'COMPLETED' %}
+                  <span class="badge bg-success-subtle text-success border border-success">Completed</span>
+                {% elif b.status == 'ACTIVE' %}
+                  <span class="badge bg-primary-subtle text-primary border border-primary">Active</span>
+                {% elif b.status == 'ACCEPTED' %}
+                  <span class="badge bg-info-subtle text-info-emphasis border border-info">Accepted (Pay)</span>
+                {% elif b.status == 'PENDING' %}
+                  <span class="badge bg-warning-subtle text-dark border border-warning">Pending Owner</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary">{{ b.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'rentals:rental_detail' b.id %}" class="btn btn-sm btn-sl-navy py-1 px-3">
+                  View Booking
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="bi bi-clock-history fs-2 d-block mb-2 opacity-50"></i>
+                You haven't requested any rentals yet.
+                <div class="mt-2">
+                  <a href="{% url 'listings:browse' %}?mode=rent" class="btn btn-primary btn-sm">Browse Rental Items</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

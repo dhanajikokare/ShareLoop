@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Log Handover Evidence — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-700">
+  <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="fs-2 text-teal"><i class="bi bi-camera-fill"></i></div>
+      <div>
+        <h1 class="h4 fw-bold mb-0">Record Handover Evidence</h1>
+        <p class="text-muted small mb-0">
+          {% if booking %}For Rental Booking #{{ booking.booking_reference }}
+          {% elif borrow_req %}For Borrow Loan #{{ borrow_req.request_reference }}
+          {% elif order %}For Order #{{ order.order_number }}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Handover Stage *</label>
+        {{ form.log_type }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Item Condition Assessment *</label>
+        {{ form.item_condition }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Notes & Observations *</label>
+        {{ form.notes }}
+        <div class="form-text small">Include details like accessories present, working status, or pre-existing marks.</div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label small fw-semibold">Evidence Photograph *</label>
+        {{ form.evidence_photo }}
+        <div class="form-text small">Take a clear photo showing the item condition. Only participants and admin have access.</div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">Back</a>
+        <button type="submit" class="btn btn-sl-teal px-4 fw-semibold">
+          <i class="bi bi-cloud-upload-fill me-1"></i> Save Evidence Record
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

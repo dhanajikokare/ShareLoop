@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Order {{ order.order_number }} — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-900">
+  <nav class="sl-breadcrumb-nav" aria-label="breadcrumb">
+    <ol class="breadcrumb sl-breadcrumb mb-3">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'orders:my_orders' %}" class="text-decoration-none">Orders</a></li>
+      <li class="breadcrumb-item active" aria-current="page" title="{{ order.order_number }}" aria-label="{{ order.order_number }}">{{ order.order_number }}</li>
+    </ol>
+  </nav>
+
+  <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h1 class="h3 fw-bold mb-0">Order #{{ order.order_number }}</h1>
+          <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-1 fs-6">
+            {{ order.get_status_display }}
+          </span>
+        </div>
+        <p class="text-muted small mb-0">Placed on {{ order.created_at|date:"d M Y, h:i A" }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2">
+        {% if is_seller %}
+          <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+              Update Status
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li>
+                <form method="post" action="{% url 'orders:update_status' order.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="PROCESSING">
+                  <button type="submit" class="dropdown-item small">Mark Processing</button>
+                </form>
+              </li>
+              <li>
+                <form method="post" action="{% url 'orders:update_status' order.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="READY_FOR_PICKUP">
+                  <button type="submit" class="dropdown-item small">Mark Ready for Pickup</button>
+                </form>
+              </li>
+              <li>
+                <form method="post" action="{% url 'orders:update_status' order.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="COMPLETED">
+                  <button type="submit" class="dropdown-item small text-success fw-bold">Mark Completed</button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if order.status == 'COMPLETED' and is_buyer %}
+          <a href="{% url 'reviews:create_review' %}?type=SALE&id={{ order.id }}" class="btn btn-outline-warning btn-sm fw-semibold">
+            <i class="bi bi-star me-1"></i> Review Seller
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Purchased Items</h5>
+        {% for item in order.items.all %}
+          <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+              {% if item.listing.primary_image %}
+                <img src="{{ item.listing.primary_image.image.url }}" alt="{{ item.listing.title }}" class="rounded border" width="54" height="54" style="object-fit:cover;" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+              {% else %}
+                <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ item.listing.title }}" class="rounded border" width="54" height="54" style="object-fit:cover;">
+              {% endif %}
+              <div>
+                <a href="{% url 'listings:detail' item.listing.id item.listing.slug %}" class="fw-semibold text-dark text-decoration-none">
+                  {{ item.listing.title }}
+                </a>
+                <div class="small text-muted">{{ item.quantity }} &times; ₹{{ item.unit_price|floatformat:0 }}</div>
+              </div>
+            </div>
+            <div class="fw-bold">₹{{ item.subtotal|floatformat:2|intcomma }}</div>
+          </div>
+        {% endfor %}
+
+        <div class="mt-3 small">
+          <div class="fw-semibold text-secondary">Fulfillment Preference:</div>
+          <div>{{ order.get_fulfillment_type_display }}</div>
+          {% if order.delivery_address %}
+            <div class="mt-2 text-muted"><strong>Address / Pickup Note:</strong> {{ order.delivery_address }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Handover Logs -->
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold fs-6 mb-0"><i class="bi bi-camera text-teal me-2"></i> Handover Evidence</h5>
+          <a href="{% url 'reviews:add_evidence' %}?order_id={{ order.id }}" class="btn btn-sm btn-outline-teal">
+            <i class="bi bi-plus-lg me-1"></i> Log Evidence
+          </a>
+        </div>
+        {% for log in handover_logs %}
+          <div class="p-3 bg-light rounded-3 mb-2 small">
+            <div class="d-flex justify-content-between">
+              <strong>{{ log.get_log_type_display }}</strong>
+              <span class="text-muted">{{ log.timestamp|date:"d M, h:i A" }}</span>
+            </div>
+            <div class="text-muted">Recorded by {{ log.recorded_by.display_name }}</div>
+            {% if log.notes %}<p class="mt-1 mb-0">{{ log.notes }}</p>{% endif %}
+            {% if log.evidence_photo %}
+              <div class="mt-2"><img src="{{ log.evidence_photo.url }}" class="rounded border" width="90" height="70" style="object-fit:cover;"></div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="small text-muted mb-0">No handover photos logged yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="col-lg-5">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Order Payment Summary</h5>
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span>Items Subtotal:</span>
+          <span>₹{{ order.items_total|floatformat:2|intcomma }}</span>
+        </div>
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span>Platform Service Fee:</span>
+          <span>₹{{ order.platform_fee|floatformat:2|intcomma }}</span>
+        </div>
+        <div class="d-flex justify-content-between pt-3 fw-bold fs-5 text-dark">
+          <span>Total:</span>
+          <span>₹{{ order.total_amount|floatformat:2|intcomma }}</span>
+        </div>
+      </div>
+
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h5 class="fw-bold fs-6 mb-2">Parties</h5>
+        <div class="small text-muted mb-2">
+          <strong>Seller:</strong> {{ order.seller.display_name }} ({{ order.seller.phone_number }})
+        </div>
+        <div class="small text-muted">
+          <strong>Buyer:</strong> {{ order.buyer.display_name }} ({{ order.buyer.phone_number }})
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

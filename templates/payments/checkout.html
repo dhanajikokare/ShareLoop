@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout Payment — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-700">
+  <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+    <div class="text-center mb-4">
+      <div class="sl-brand-icon mx-auto mb-2" style="width: 44px; height: 44px; font-size: 1.3rem;">
+        <i class="bi bi-shield-lock-fill text-white"></i>
+      </div>
+      <h1 class="h3 fw-bold mb-1">Secure Checkout</h1>
+      <p class="text-muted small mb-0">Booking #{{ booking.booking_reference }} &middot; {{ booking.listing.title }}</p>
+    </div>
+
+    <!-- Amount Card -->
+    <div class="p-3 bg-light rounded-3 mb-4">
+      <div class="d-flex justify-content-between small py-1 border-bottom">
+        <span class="text-muted">Rental Fee ({{ booking.total_days }} days):</span>
+        <span class="fw-semibold">₹{{ booking.rental_fee|floatformat:2|intcomma }}</span>
+      </div>
+      <div class="d-flex justify-content-between small py-1 border-bottom">
+        <span class="text-muted">Refundable Security Deposit:</span>
+        <span class="fw-semibold">₹{{ booking.security_deposit|floatformat:2|intcomma }}</span>
+      </div>
+      <div class="d-flex justify-content-between small py-1 border-bottom">
+        <span class="text-muted">Platform Fee:</span>
+        <span class="fw-semibold">₹{{ booking.platform_fee|floatformat:2|intcomma }}</span>
+      </div>
+      <div class="d-flex justify-content-between pt-2 fw-bold fs-5 text-primary">
+        <span>Total Payable:</span>
+        <span>₹{{ amount|floatformat:2|intcomma }}</span>
+      </div>
+    </div>
+
+    {% if is_sandbox %}
+      <!-- Safe Sandbox / Test Mode Simulator -->
+      <div class="alert alert-warning border border-warning rounded-3 p-3 mb-4">
+        <div class="d-flex gap-2">
+          <i class="bi bi-info-circle-fill fs-5 text-warning-emphasis"></i>
+          <div>
+            <div class="fw-bold">Payment Sandbox Mode (Test Environment)</div>
+            <p class="small text-muted mb-0">
+              Live Razorpay API keys are not currently configured in <code>.env</code>. The transaction is executing in safe developer test mode. No real money will be charged.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'payments:verify_payment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="payment_id" value="{{ payment.id }}">
+        <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
+        <input type="hidden" name="razorpay_payment_id" value="pay_test_{{ booking.booking_reference }}">
+        <input type="hidden" name="razorpay_signature" value="sig_simulated_test">
+        <input type="hidden" name="is_simulated" value="true">
+
+        <button type="submit" class="btn btn-sl-teal w-100 py-3 fw-bold mb-2">
+          <i class="bi bi-check2-circle me-1"></i> Simulate Successful Test Payment (₹{{ amount|floatformat:0 }})
+        </button>
+      </form>
+      <a href="{% url 'rentals:rental_detail' booking.id %}" class="btn btn-outline-secondary w-100 btn-sm">
+        Cancel and Return to Booking
+      </a>
+
+    {% else %}
+      <!-- Razorpay Live/Test Modal Checkout -->
+      <form id="razorpay-form" method="post" action="{% url 'payments:verify_payment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="payment_id" value="{{ payment.id }}">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+        <input type="hidden" name="is_simulated" value="false">
+
+        <button type="button" id="rzp-button" class="btn btn-sl-teal w-100 py-3 fw-bold">
+          <i class="bi bi-lock-fill me-1"></i> Pay with Razorpay (₹{{ amount|floatformat:0 }})
+        </button>
+      </form>
+
+      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      <script>
+        var options = {
+          "key": "{{ razorpay_key_id }}",
+          "amount": "{{ amount_paise }}",
+          "currency": "INR",
+          "name": "ShareLoop",
+          "description": "Rental Booking #{{ booking.booking_reference }}",
+          "order_id": "{{ razorpay_order_id }}",
+          "handler": function (response){
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('razorpay-form').submit();
+          },
+          "prefill": {
+            "name": "{{ user.display_name }}",
+            "email": "{{ user.email }}",
+            "contact": "{{ user.phone_number }}"
+          },
+          "theme": {
+            "color": "#18A999"
+          }
+        };
+        var rzp1 = new Razorpay(options);
+        document.getElementById('rzp-button').onclick = function(e){
+          rzp1.open();
+          e.preventDefault();
+        }
+      </script>
+    {% endif %}
+
+    <div class="mt-4 pt-3 border-top text-center text-muted small">
+      <i class="bi bi-shield-check text-success me-1"></i> 256-bit SSL encrypted. Payment details are never stored on ShareLoop servers.
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+{% block title %}Borrow Request {{ borrow_req.request_reference }} — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-900">
+  <nav class="sl-breadcrumb-nav" aria-label="breadcrumb">
+    <ol class="breadcrumb sl-breadcrumb mb-3">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'borrowing:my_borrows' %}" class="text-decoration-none">Borrowing</a></li>
+      <li class="breadcrumb-item active" aria-current="page" title="{{ borrow_req.request_reference }}" aria-label="{{ borrow_req.request_reference }}">{{ borrow_req.request_reference }}</li>
+    </ol>
+  </nav>
+
+  <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h1 class="h3 fw-bold mb-0">Borrow Loan #{{ borrow_req.request_reference }}</h1>
+          <span class="badge bg-success-subtle text-success border border-success px-3 py-1 fs-6">
+            {{ borrow_req.get_status_display }}
+          </span>
+        </div>
+        <p class="text-muted small mb-0">Zero rental fee &middot; Peer-to-peer sharing in Pune</p>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if is_owner and borrow_req.status == 'PENDING' %}
+          <form method="post" action="{% url 'borrowing:accept_borrow' borrow_req.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success fw-semibold btn-sm px-3">
+              <i class="bi bi-check-lg me-1"></i> Approve Request
+            </button>
+          </form>
+          <button class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#rejectModal">
+            Decline
+          </button>
+        {% endif %}
+
+        {% if borrow_req.status == 'ACCEPTED' %}
+          <form method="post" action="{% url 'borrowing:mark_active' borrow_req.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm px-3 fw-semibold">
+              <i class="bi bi-box-arrow-up me-1"></i> Confirm Handover
+            </button>
+          </form>
+        {% endif %}
+
+        {% if is_owner and borrow_req.status == 'ACTIVE' %}
+          <form method="post" action="{% url 'borrowing:mark_completed' borrow_req.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-sm px-3 fw-semibold" onclick="return confirm('Confirm safe return of the borrowed item?');">
+              <i class="bi bi-check2-circle me-1"></i> Confirm Item Returned
+            </button>
+          </form>
+        {% endif %}
+
+        {% if borrow_req.status == 'COMPLETED' %}
+          <a href="{% url 'reviews:create_review' %}?type=BORROW&id={{ borrow_req.id }}" class="btn btn-outline-success btn-sm px-3 fw-semibold">
+            <i class="bi bi-star me-1"></i> Leave a Review
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Item Borrowed</h5>
+        <div class="d-flex gap-3 align-items-center mb-3">
+          {% if borrow_req.listing.primary_image %}
+            <img src="{{ borrow_req.listing.primary_image.image.url }}" alt="{{ borrow_req.listing.title }}" class="rounded border" width="70" height="70" style="object-fit:cover;" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+          {% else %}
+            <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ borrow_req.listing.title }}" class="rounded border" width="70" height="70" style="object-fit:cover;">
+          {% endif %}
+          <div>
+            <h6 class="fw-bold mb-1">
+              <a href="{% url 'listings:detail' borrow_req.listing.id borrow_req.listing.slug %}" class="text-dark text-decoration-none">
+                {{ borrow_req.listing.title }}
+              </a>
+            </h6>
+            <div class="small text-muted">{{ borrow_req.listing.category.name }} &middot; {{ borrow_req.listing.locality }}, Pune</div>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 rounded-3 small">
+          <div class="row g-2">
+            <div class="col-6">
+              <span class="text-muted d-block">Start Date:</span>
+              <strong class="fs-6 text-dark">{{ borrow_req.start_date|date:"D, d M Y" }}</strong>
+            </div>
+            <div class="col-6">
+              <span class="text-muted d-block">Return Date:</span>
+              <strong class="fs-6 text-dark">{{ borrow_req.end_date|date:"D, d M Y" }}</strong>
+            </div>
+            <div class="col-12 mt-2 pt-2 border-top">
+              <span class="text-muted">Borrowing Duration:</span> <strong>{{ borrow_req.total_days }} Day{{ borrow_req.total_days|pluralize }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <span class="small text-muted fw-semibold">Borrower Note & Commitment:</span>
+          <p class="small text-secondary p-2 bg-white border rounded mt-1 mb-0">{{ borrow_req.borrower_message }}</p>
+        </div>
+
+        {% if borrow_req.rejection_reason %}
+          <div class="alert alert-danger small mt-3 mb-0">
+            <strong>Decline Reason:</strong> {{ borrow_req.rejection_reason }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Evidence -->
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold fs-6 mb-0"><i class="bi bi-camera-fill text-teal me-2"></i> Handover Evidence Logs</h5>
+          {% if borrow_req.status in 'ACCEPTED,ACTIVE' %}
+            <a href="{% url 'reviews:add_evidence' %}?borrow_id={{ borrow_req.id }}" class="btn btn-sm btn-outline-teal">
+              <i class="bi bi-plus-lg me-1"></i> Log Photo
+            </a>
+          {% endif %}
+        </div>
+        {% for log in handover_logs %}
+          <div class="p-3 bg-light rounded-3 mb-2 small">
+            <div class="d-flex justify-content-between">
+              <strong>{{ log.get_log_type_display }}</strong>
+              <span class="text-muted">{{ log.timestamp|date:"d M, h:i A" }}</span>
+            </div>
+            <div class="text-muted">Recorded by {{ log.recorded_by.display_name }} &middot; Condition: {{ log.get_item_condition_display }}</div>
+            {% if log.notes %}<p class="mt-1 mb-0">{{ log.notes }}</p>{% endif %}
+            {% if log.evidence_photo %}
+              <div class="mt-2"><img src="{{ log.evidence_photo.url }}" class="rounded border" width="90" height="70" style="object-fit:cover;"></div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="small text-muted mb-0">No evidence photo logged yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Fee Structure</h5>
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span>Rental Charge:</span>
+          <span class="text-success fw-bold">₹0.00 (100% Free)</span>
+        </div>
+        <div class="d-flex justify-content-between small py-2 border-bottom">
+          <span>Platform Service Fee:</span>
+          <span class="text-success fw-bold">₹0.00</span>
+        </div>
+        {% if borrow_req.security_deposit > 0 %}
+          <div class="d-flex justify-content-between small py-2 border-bottom">
+            <span>Refundable Deposit:</span>
+            <span class="fw-bold">₹{{ borrow_req.security_deposit }}</span>
+          </div>
+        {% endif %}
+        <div class="alert alert-success bg-success bg-opacity-10 border-success small mt-3 mb-0">
+          <i class="bi bi-heart-fill me-1"></i> ShareLoop guarantees that borrowing is 100% free of rental charges.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4 border-0">
+      <form method="post" action="{% url 'borrowing:reject_borrow' borrow_req.id %}">
+        {% csrf_token %}
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Decline Borrow Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">Please provide a reason to the neighbor:</p>
+          <textarea name="rejection_reason" class="form-control" rows="3" required placeholder="Reason for declining..."></textarea>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">Decline Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

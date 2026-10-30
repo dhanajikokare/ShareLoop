@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Incoming Borrow Requests — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Incoming Free Borrow Requests</h1>
+      <p class="text-muted small mb-0">Neighbors asking to borrow your items for free</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Ref</th>
+            <th>Item</th>
+            <th>Borrower</th>
+            <th>Requested Dates</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for r in requests %}
+            <tr>
+              <td class="fw-bold">{{ r.request_reference }}</td>
+              <td>
+                <a href="{% url 'listings:detail' r.listing.id r.listing.slug %}" class="text-dark text-decoration-none fw-semibold">
+                  {{ r.listing.title }}
+                </a>
+              </td>
+              <td>{{ r.borrower.display_name }}</td>
+              <td>{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M Y" }} ({{ r.total_days }}d)</td>
+              <td><span class="badge bg-light text-dark border">{{ r.get_status_display }}</span></td>
+              <td class="text-end">
+                <a href="{% url 'borrowing:borrow_detail' r.id %}" class="btn btn-sm btn-sl-teal py-1 px-3">
+                  Review Request
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                No borrow requests received yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

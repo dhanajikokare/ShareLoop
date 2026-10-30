@@ -1,0 +1,300 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ShareLoop — Rent, Borrow & Sell Marketplace | Pune{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}ShareLoop is Pune's premier community marketplace to rent out gear, borrow items for free, and buy or sell pre-loved products.{% endblock %}">
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS & Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- ShareLoop Design System CSS -->
+  <link rel="stylesheet" href="{% static 'css/shareloop.css' %}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Main Navbar -->
+  <nav class="navbar navbar-expand-lg sl-navbar" aria-label="Main navigation">
+    <div class="container">
+      <!-- Brand Logo -->
+      <a class="navbar-brand sl-brand" href="{% url 'core:home' %}">
+        <div class="sl-brand-icon">
+          <i class="bi bi-arrow-repeat"></i>
+        </div>
+        <span>Share<span class="brand-teal">Loop</span></span>
+      </a>
+
+      <!-- Location Indicator (Pune, MH) -->
+      <div class="d-none d-md-flex align-items-center sl-location-badge text-white-50 ms-3 me-3 small">
+        <i class="bi bi-geo-alt-fill text-warning me-1"></i>
+        <span class="text-white fw-semibold me-1">{{ DEFAULT_CITY }}</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.7rem;">Live</span>
+      </div>
+
+      <!-- Mobile Hamburger -->
+      <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2"></i>
+      </button>
+
+      <!-- Nav Links & Actions -->
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav sl-navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link sl-nav-link" href="{% url 'listings:browse' %}">
+              <i class="bi bi-grid me-1"></i> Browse All
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sl-nav-link" href="{% url 'core:how_it_works' %}">
+              <i class="bi bi-info-circle me-1"></i> How It Works
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sl-nav-link" href="{% url 'core:safety' %}">
+              <i class="bi bi-shield-check me-1"></i> Trust & Safety
+            </a>
+          </li>
+        </ul>
+
+        <!-- Right Side Nav Elements -->
+        <div class="sl-navbar-actions d-flex align-items-center gap-2">
+          <!-- List an Item CTA -->
+          <a href="{% url 'listings:create' %}" class="btn btn-sl-teal d-flex align-items-center gap-1">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>List an Item</span>
+          </a>
+
+          {% if user.is_authenticated %}
+            <!-- Notifications Bell -->
+            <a href="{% url 'core:notifications' %}" class="btn btn-outline-light sl-notif-btn position-relative p-2 rounded-circle" title="Notifications" aria-label="Notifications">
+              <i class="bi bi-bell"></i>
+              {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                  {{ unread_notifications_count }}
+                  <span class="visually-hidden">unread notifications</span>
+                </span>
+              {% endif %}
+            </a>
+
+            <!-- User Menu Dropdown -->
+            <div class="dropdown sl-user-dropdown position-relative">
+              <button class="btn sl-user-dropdown-btn text-white d-flex align-items-center gap-2 py-1 px-2 rounded-3" 
+                      type="button" 
+                      id="userProfileDropdown" 
+                      data-bs-toggle="dropdown" 
+                      data-bs-display="static" 
+                      aria-expanded="false" 
+                      aria-haspopup="true">
+                {% if user.avatar %}
+                  <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="rounded-circle" width="28" height="28" style="object-fit:cover;">
+                {% else %}
+                  <div class="bg-teal text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background-color: var(--sl-teal); font-size: 0.85rem; font-weight: 700;">
+                    {{ user.username|slice:":1"|upper }}
+                  </div>
+                {% endif %}
+                <span class="small fw-semibold text-truncate" style="max-width: 130px;">{{ user.display_name }}</span>
+                <i class="bi bi-chevron-down small opacity-75"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end sl-user-dropdown-menu shadow-lg border-0 py-2" aria-labelledby="userProfileDropdown">
+                <li class="px-3 py-2 border-bottom">
+                  <div class="fw-bold text-truncate" title="{{ user.display_name }}">{{ user.display_name }}</div>
+                  <div class="small text-muted text-truncate" title="{{ user.email }}">{{ user.email }}</div>
+                  <div class="d-flex align-items-center gap-1 mt-1">
+                    <span class="badge bg-light text-dark border">{{ user.get_user_type_display }}</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-person-check me-1"></i>Active Member</span>
+                  </div>
+                </li>
+                <li><a class="dropdown-item py-2" href="{% url 'accounts:dashboard' %}"><i class="bi bi-speedometer2 me-2 text-primary"></i> Dashboard</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'accounts:profile' %}"><i class="bi bi-person-gear me-2 text-secondary"></i> My Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'listings:my_listings' %}"><i class="bi bi-collection me-2 text-teal"></i> My Listings</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'rentals:my_rentals' %}"><i class="bi bi-clock-history me-2 text-info"></i> Rental Bookings</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'borrowing:my_borrows' %}"><i class="bi bi-arrow-left-right me-2 text-success"></i> Borrow Requests</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'orders:my_orders' %}"><i class="bi bi-bag-check me-2 text-warning"></i> Orders & Sales</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'reviews:evidence_list' %}"><i class="bi bi-camera me-2 text-purple"></i> Handover Evidence</a></li>
+                {% if user.is_staff %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item py-2 text-primary fw-semibold" href="{% url 'admin:index' %}" target="_blank"><i class="bi bi-gear-fill me-2"></i> Django Admin</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item py-2 text-danger">
+                      <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          {% else %}
+            <!-- Guest Links -->
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-sm px-3">Log In</a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-light btn-sm px-3 fw-semibold">Sign Up</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sub-Navbar: Marketplace Mode Selector Bar -->
+  <div class="sl-mode-bar">
+    <div class="container d-flex align-items-center justify-content-between py-1">
+      <div class="sl-mode-pills-scroll d-flex align-items-center gap-2">
+        <a href="{% url 'listings:browse' %}" class="sl-mode-pill {% if not current_mode %}active-all{% endif %}">
+          <i class="bi bi-grid-fill"></i> All Modes
+        </a>
+        <a href="{% url 'listings:browse' %}?mode=rent" class="sl-mode-pill {% if current_mode == 'rent' %}active-rent{% endif %}">
+          <i class="bi bi-currency-rupee text-primary"></i> Rent Items
+        </a>
+        <a href="{% url 'listings:browse' %}?mode=borrow" class="sl-mode-pill {% if current_mode == 'borrow' %}active-borrow{% endif %}">
+          <i class="bi bi-heart-fill text-success"></i> Borrow for Free
+        </a>
+        <a href="{% url 'listings:browse' %}?mode=sell" class="sl-mode-pill {% if current_mode == 'sell' %}active-sell{% endif %}">
+          <i class="bi bi-tag-fill text-warning"></i> Buy & Sell
+        </a>
+      </div>
+
+      <!-- Quick category dropdown for desktop -->
+      <div class="sl-category-dropdown dropdown d-none d-lg-block">
+        <button class="btn btn-sm btn-light border dropdown-toggle fw-semibold" 
+                type="button" 
+                id="categoriesDropdown" 
+                data-bs-toggle="dropdown" 
+                data-bs-display="static" 
+                aria-expanded="false" 
+                aria-haspopup="true">
+          <i class="bi bi-tags-fill me-1 text-teal"></i> All Categories
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="categoriesDropdown" style="max-height: 380px; overflow-y: auto;">
+          {% for cat in global_categories %}
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'listings:browse' %}?category={{ cat.slug }}">
+                <i class="bi {{ cat.icon_class }} text-muted"></i>
+                <span>{{ cat.name }}</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Alert / Messages Container -->
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+          <div class="d-flex align-items-center gap-2">
+            {% if message.tags == 'success' %}
+              <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+              <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+            {% elif message.tags == 'warning' %}
+              <i class="bi bi-exclamation-circle-fill fs-5 text-warning"></i>
+            {% else %}
+              <i class="bi bi-info-circle-fill fs-5 text-primary"></i>
+            {% endif %}
+            <div>{{ message }}</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main Content Area -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ShareLoop Modern Footer -->
+  <footer class="sl-footer">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Col 1: About & Pune Launch -->
+        <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="sl-brand-icon" style="width: 32px; height: 32px;">
+              <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <span class="fs-4 fw-bold text-white">Share<span style="color: var(--sl-teal);">Loop</span></span>
+          </div>
+          <p class="small text-white-50 mb-3" style="line-height: 1.6;">
+            <strong class="text-white d-block mb-1">{{ SITE_TAGLINE }}</strong>
+            Pune’s trusted neighborhood marketplace empowering citizens and local shops to share resources, rent quality gear, lend items for free, and buy sustainably.
+          </p>
+          <div class="d-flex align-items-center gap-2 text-white-50 small">
+            <i class="bi bi-geo-alt-fill text-teal"></i>
+            <span>Proudly launched in Pune, Maharashtra</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Marketplace Modes -->
+        <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+          <h6 class="sl-footer-heading">Marketplace</h6>
+          <ul class="list-unstyled mb-0">
+            <li><a href="{% url 'listings:browse' %}?mode=rent" class="sl-footer-link">Rent Products</a></li>
+            <li><a href="{% url 'listings:browse' %}?mode=borrow" class="sl-footer-link">Borrow for Free</a></li>
+            <li><a href="{% url 'listings:browse' %}?mode=sell" class="sl-footer-link">Buy & Sell</a></li>
+            <li><a href="{% url 'listings:browse' %}" class="sl-footer-link">All Pune Listings</a></li>
+            <li><a href="{% url 'listings:create' %}" class="sl-footer-link">List Your Product</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Popular Pune Localities -->
+        <div class="col-lg-3 col-md-6 col-6 mb-4 mb-lg-0">
+          <h6 class="sl-footer-heading">Pune Neighborhoods</h6>
+          <div class="d-flex flex-wrap gap-1">
+            {% for loc in PUNE_LOCALITIES|slice:":8" %}
+              <a href="{% url 'listings:browse' %}?locality={{ loc }}" class="badge bg-secondary bg-opacity-25 text-white-50 text-decoration-none p-1 px-2 mb-1" style="font-size: 0.75rem;">
+                {{ loc }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Col 4: Trust, Safety & Legal -->
+        <div class="col-lg-3 col-md-6 col-12 mb-4 mb-lg-0">
+          <h6 class="sl-footer-heading">Trust & Legal</h6>
+          <ul class="list-unstyled mb-0">
+            <li><a href="{% url 'core:how_it_works' %}" class="sl-footer-link">How ShareLoop Works</a></li>
+            <li><a href="{% url 'core:safety' %}" class="sl-footer-link">Safety & Handover Evidence</a></li>
+            <li><a href="{% url 'core:terms' %}" class="sl-footer-link">Terms & Conditions</a></li>
+            <li><a href="{% url 'core:privacy' %}" class="sl-footer-link">Privacy Policy</a></li>
+            <li><a href="{% url 'core:contact' %}" class="sl-footer-link">Contact & Support</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Bottom Bar -->
+      <div class="sl-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+        <div>
+          &copy; 2026 ShareLoop Technologies. All rights reserved.
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-dark border text-light"><i class="bi bi-shield-check text-teal me-1"></i> Community Protected Platform</span>
+          <span class="badge bg-dark border text-light">Currency: INR (₹)</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ShareLoop Custom Script -->
+  <script src="{% static 'js/shareloop.js' %}"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

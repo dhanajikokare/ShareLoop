@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Contact & Support — ShareLoop Pune{% endblock %}
+
+{% block content %}
+<div class="bg-navy py-5 text-white" style="background-color: var(--sl-navy);">
+  <div class="container text-center">
+    <h1 class="fw-bold mb-2">Get in Touch</h1>
+    <p class="text-white-50 fs-5 mb-0">We are here to support Pune's community sharing ecosystem</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-4 justify-content-center">
+    <div class="col-lg-7">
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h4 class="fw-bold mb-3">Send us a message</h4>
+        <form method="post" action="{% url 'core:contact' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Your Name *</label>
+            <input type="text" name="name" class="form-control" required placeholder="e.g. Anand Kulkarni" value="{% if user.is_authenticated %}{{ user.display_name }}{% endif %}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email Address *</label>
+            <input type="email" name="email" class="form-control" required placeholder="you@example.com" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Subject</label>
+            <input type="text" name="subject" class="form-control" placeholder="Listing inquiry, partnership, or general support">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Message *</label>
+            <textarea name="message" class="form-control" rows="5" required placeholder="How can we help you?"></textarea>
+          </div>
+          <button type="submit" class="btn btn-sl-teal px-4 py-2 fw-semibold">
+            <i class="bi bi-send-fill me-2"></i> Submit Inquiry
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card p-4 border-0 shadow-sm rounded-4 bg-light mb-3">
+        <h5 class="fw-bold text-navy mb-3"><i class="bi bi-geo-alt-fill text-teal me-2"></i> Pune Office</h5>
+        <p class="small text-secondary mb-2">
+          <strong>ShareLoop Community Hub</strong><br>
+          FC Road / Shivaji Nagar<br>
+          Pune, Maharashtra 411005
+        </p>
+        <p class="small text-secondary mb-0">
+          <strong>Email:</strong> support@shareloop.in<br>
+          <strong>Hours:</strong> Mon - Sat: 9:30 AM – 7:00 PM IST
+        </p>
+      </div>
+
+      <div class="card p-4 border-0 shadow-sm rounded-4 border-teal">
+        <h6 class="fw-bold text-teal mb-2"><i class="bi bi-lightbulb-fill me-1"></i> Running a Local Shop in Pune?</h6>
+        <p class="small text-muted mb-3">
+          Camera stores, party equipment rental shops, and cycle dealers can partner as Business Sellers on ShareLoop.
+        </p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-sm btn-outline-dark">Register as Business</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

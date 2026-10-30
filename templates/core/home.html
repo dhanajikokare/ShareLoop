@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}ShareLoop — Rent, Borrow & Sell Marketplace in Pune{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="sl-hero">
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row align-items-center">
+      <div class="col-lg-9 col-xl-8 mx-auto text-center">
+        <!-- City Badge -->
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 text-white-50 border border-white border-opacity-20 mb-2 small">
+          <span class="pulse-dot"></span>
+          <span>Now Live Across All Neighborhoods in <strong>Pune</strong></span>
+        </div>
+
+        <h1 class="sl-hero-title mb-2">Rent, Borrow & Buy Anything in Pune</h1>
+        <p class="sl-hero-tagline mb-3">
+          Why buy when you can share? Access cameras, power tools, camping gear, and books from trusted neighbors and local shops across Pune.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="sl-search-box text-start">
+          <form method="get" action="{% url 'listings:browse' %}">
+            <div class="row g-2 align-items-center">
+              <!-- Keyword input -->
+              <div class="col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="bi bi-search"></i></span>
+                  <input type="text" name="q" class="form-control sl-search-input" placeholder="Cameras, drills, tents, books...">
+                </div>
+              </div>
+
+              <!-- Category select -->
+              <div class="col-md-3 border-start-md">
+                <select name="category" class="form-select border-0 shadow-none ps-3">
+                  <option value="">All Categories</option>
+                  {% for cat in categories %}
+                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Locality select (Pune) -->
+              <div class="col-md-3 border-start-md">
+                <select name="locality" class="form-select border-0 shadow-none ps-3">
+                  <option value="">All Pune Localities</option>
+                  {% for loc in PUNE_LOCALITIES %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Search button -->
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-sl-teal w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                  <i class="bi bi-search"></i>
+                  <span>Find</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick mode check pills inside search bar (responsive wrapping) -->
+            <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 px-3 pt-2 mt-1 border-top small text-muted">
+              <span class="fw-semibold text-secondary">Looking for:</span>
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="radio" name="mode" id="mode_all" value="" checked>
+                <label class="form-check-label" for="mode_all">All Modes</label>
+              </div>
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="radio" name="mode" id="mode_rent" value="rent">
+                <label class="form-check-label text-primary fw-semibold" for="mode_rent">Rent</label>
+              </div>
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="radio" name="mode" id="mode_borrow" value="borrow">
+                <label class="form-check-label text-success fw-semibold" for="mode_borrow">Borrow (Free)</label>
+              </div>
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="radio" name="mode" id="mode_sell" value="sell">
+                <label class="form-check-label text-warning-emphasis fw-semibold" for="mode_sell">Buy</label>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Hero CTAs -->
+        <div class="d-flex justify-content-center gap-3 mt-3">
+          <a href="{% url 'listings:browse' %}" class="btn btn-light px-4 py-2 fw-bold text-navy shadow-sm">
+            <i class="bi bi-compass me-1"></i> Explore Items
+          </a>
+          <a href="{% url 'listings:create' %}" class="btn btn-outline-light px-4 py-2 fw-semibold">
+            <i class="bi bi-plus-lg me-1"></i> List Your Item
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories Grid -->
+<section class="py-5 bg-white border-bottom">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h6 class="text-uppercase text-teal fw-bold small mb-1">Browse Categories</h6>
+        <h2 class="h3 fw-bold mb-0">What are you looking for today?</h2>
+      </div>
+      <a href="{% url 'listings:browse' %}" class="btn btn-sm btn-outline-secondary">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+      {% for cat in categories %}
+        <div class="col">
+          <a href="{% url 'listings:browse' %}?category={{ cat.slug }}" class="category-card">
+            <div class="category-icon-wrapper">
+              <i class="bi {{ cat.icon_class }}"></i>
+            </div>
+            <span class="small fw-semibold text-center">{{ cat.name }}</span>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Database Listings -->
+<section class="py-5">
+  <div class="container">
+    <!-- Header with tabs -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+      <div>
+        <h6 class="text-uppercase text-teal fw-bold small mb-1">Explore Pune Marketplace</h6>
+        <h2 class="h3 fw-bold mb-0">Featured Community Listings</h2>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'listings:browse' %}?mode=rent" class="btn btn-sm btn-outline-primary fw-semibold">
+          <i class="bi bi-currency-rupee"></i> For Rent
+        </a>
+        <a href="{% url 'listings:browse' %}?mode=borrow" class="btn btn-sm btn-outline-success fw-semibold">
+          <i class="bi bi-heart-fill"></i> Free to Borrow
+        </a>
+        <a href="{% url 'listings:browse' %}?mode=sell" class="btn btn-sm btn-outline-warning fw-semibold">
+          <i class="bi bi-tag-fill"></i> For Sale
+        </a>
+      </div>
+    </div>
+
+    <!-- Product Cards Grid -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      {% for item in recent_listings %}
+        <div class="col">
+          <div class="sl-card">
+            <!-- Image Area -->
+            <div class="sl-card-img-wrapper">
+              {% if item.primary_image %}
+                <img src="{{ item.primary_image.image.url }}" alt="{{ item.title }}" class="sl-card-img" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+              {% else %}
+                <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ item.title }}" class="sl-card-img sl-fallback-img">
+              {% endif %}
+
+              <!-- Badges in compact top row -->
+              <div class="sl-card-badges">
+                {% if item.can_rent %}
+                  <span class="sl-badge-mode badge-mode-rent"><i class="bi bi-clock"></i> Rent</span>
+                {% endif %}
+                {% if item.can_borrow %}
+                  <span class="sl-badge-mode badge-mode-borrow"><i class="bi bi-heart-fill"></i> Free</span>
+                {% endif %}
+                {% if item.can_sell %}
+                  <span class="sl-badge-mode badge-mode-sell"><i class="bi bi-tag-fill"></i> Buy</span>
+                {% endif %}
+              </div>
+
+              <!-- Locality Pin at bottom left -->
+              <div class="sl-card-locality">
+                <span class="badge bg-dark bg-opacity-75 text-white">
+                  <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ item.locality }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="sl-card-body">
+              <div class="text-muted small mb-1">{{ item.category.name }}</div>
+              <h5 class="sl-card-title" title="{{ item.title }}">
+                <a href="{% url 'listings:detail' item.id item.slug %}" class="stretched-link">
+                  {{ item.title }}
+                </a>
+              </h5>
+
+              <!-- Pricing summary -->
+              <div class="mt-auto pt-2 border-top">
+                <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-1">
+                  {% if item.can_rent and item.rent_price_per_day %}
+                    <div class="d-flex align-items-baseline gap-1">
+                      <span class="sl-price-tag">₹{{ item.rent_price_per_day|floatformat:0|intcomma }}</span>
+                      <span class="sl-price-period">/ day</span>
+                    </div>
+                    {% if item.can_sell and item.sell_price %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.68rem;">Buy: ₹{{ item.sell_price|floatformat:0|intcomma }}</span>
+                    {% elif item.can_borrow %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.68rem;">Also Borrow Free</span>
+                    {% endif %}
+                  {% elif item.can_borrow %}
+                    <div class="d-flex align-items-baseline gap-1">
+                      <span class="sl-price-tag text-success">Free to Borrow</span>
+                    </div>
+                    {% if item.can_sell and item.sell_price %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.68rem;">Buy: ₹{{ item.sell_price|floatformat:0|intcomma }}</span>
+                    {% endif %}
+                  {% elif item.can_sell and item.sell_price %}
+                    <div class="d-flex align-items-baseline gap-1">
+                      <span class="sl-price-tag">₹{{ item.sell_price|floatformat:0|intcomma }}</span>
+                      {% if item.sell_price_negotiable %}
+                        <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Negotiable</span>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Seller Info & Item Condition: Both Readable & Accurate -->
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1 small text-muted border-top border-light">
+                  <span class="text-truncate" style="max-width: 130px;" title="{{ item.owner.display_name }}">
+                    {% if item.owner.is_business_seller %}
+                      <i class="bi bi-shop text-primary me-1"></i>{{ item.owner.display_name }}
+                    {% else %}
+                      <i class="bi bi-person me-1"></i>{{ item.owner.display_name }}
+                    {% endif %}
+                  </span>
+                  <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">{{ item.get_item_condition_display }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-12 text-center py-5">
+          <p class="text-muted">No listings available at the moment. Be the first to share in Pune!</p>
+          <a href="{% url 'listings:create' %}" class="btn btn-sl-teal">List an Item Now</a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- View All Button -->
+    <div class="text-center mt-5">
+      <a href="{% url 'listings:browse' %}" class="btn btn-outline-sl-teal px-5 py-2 fw-bold">
+        Explore All Pune Listings <i class="bi bi-arrow-right ms-2"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- How ShareLoop Works -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <h6 class="text-uppercase text-teal fw-bold small mb-1">Three Simple Ways to Share</h6>
+      <h2 class="h3 fw-bold mb-3">How ShareLoop Works</h2>
+      <p class="text-muted">
+        Whether you want to earn passive income renting out gear, help a neighbor with a free loan, or sell pre-loved goods, ShareLoop makes it transparent and secure.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- 1. Rent -->
+      <div class="col-lg-4">
+        <div class="sl-feature-card">
+          <div class="sl-feature-icon" style="background-color: var(--sl-rent-bg); color: var(--sl-rent);">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <span class="sl-badge-mode badge-mode-rent mb-2">1. Rent Out Products</span>
+          <h4 class="h5 fw-bold mt-2">Rent & Earn Money</h4>
+          <p class="text-secondary small">
+            List expensive tools, cameras, camping gear, and event supplies. Choose your daily rates and security deposit. Review booking requests and collect secure payments.
+          </p>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Transparent daily/weekly rates</li>
+            <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Refundable security deposits</li>
+            <li><i class="bi bi-check2-circle text-primary me-2"></i> Owner-controlled approval</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 2. Borrow -->
+      <div class="col-lg-4">
+        <div class="sl-feature-card">
+          <div class="sl-feature-icon" style="background-color: var(--sl-borrow-bg); color: var(--sl-borrow);">
+            <i class="bi bi-heart-pulse-fill"></i>
+          </div>
+          <span class="sl-badge-mode badge-mode-borrow mb-2">2. Community Borrowing</span>
+          <h4 class="h5 fw-bold mt-2">100% Free to Borrow</h4>
+          <p class="text-secondary small">
+            Lend books, tools, and occasional items to verified neighbors at zero rental charge. Strengthen your Pune community and reduce unnecessary consumer waste.
+          </p>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-1"><i class="bi bi-check2-circle text-success me-2"></i> Zero rental or hidden fees</li>
+            <li class="mb-1"><i class="bi bi-check2-circle text-success me-2"></i> Mutually agreed return terms</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Community trust & ratings</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3. Sell -->
+      <div class="col-lg-4">
+        <div class="sl-feature-card">
+          <div class="sl-feature-icon" style="background-color: var(--sl-sell-bg); color: var(--sl-sell);">
+            <i class="bi bi-tag-fill"></i>
+          </div>
+          <span class="sl-badge-mode badge-mode-sell mb-2">3. Buy & Sell</span>
+          <h4 class="h5 fw-bold mt-2">Sell What You Don't Use</h4>
+          <p class="text-secondary small">
+            Declutter your home or showcase products from your registered shop. Connect directly with buyers in your neighborhood for easy pickup or direct delivery.
+          </p>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-1"><i class="bi bi-check2-circle text-warning-emphasis me-2"></i> Fixed or negotiable pricing</li>
+            <li class="mb-1"><i class="bi bi-check2-circle text-warning-emphasis me-2"></i> Instant inventory reservation</li>
+            <li><i class="bi bi-check2-circle text-warning-emphasis me-2"></i> Direct local handovers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust & Safety Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <div class="badge bg-teal-subtle text-teal fw-bold mb-2">Trust & Accountability</div>
+        <h2 class="h3 fw-bold mb-3">Safety built into every handover</h2>
+        <p class="text-secondary">
+          ShareLoop provides practical tools to protect both lenders and borrowers, ensuring every transaction is transparent and verifiable.
+        </p>
+
+        <div class="d-flex gap-3 mb-3">
+          <div class="fs-4 text-teal"><i class="bi bi-camera-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Photo Handover & Return Evidence</h6>
+            <p class="small text-muted mb-0">
+              Both parties photograph and record the item's condition at pickup and return. These private logs protect you in case of any dispute.
+            </p>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mb-3">
+          <div class="fs-4 text-primary"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Role-Based Transparency</h6>
+            <p class="small text-muted mb-0">
+              Clear distinction between Individual Neighbors and Registered Business Shops. Verification badges are awarded only after administrative review.
+            </p>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <div class="fs-4 text-danger"><i class="bi bi-flag-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Direct Dispute & Content Reporting</h6>
+            <p class="small text-muted mb-0">
+              Report suspicious listings, fraudulent accounts, or non-returned items with one click. Our administrative moderation team reviews all reports.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="p-4 rounded-4 shadow-sm bg-white border">
+          <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-patch-check-fill text-teal"></i> ShareLoop Community Pledge
+          </h5>
+          <p class="small text-muted">
+            By joining ShareLoop Pune, every member agrees to:
+          </p>
+          <ul class="list-unstyled small mb-4">
+            <li class="py-2 border-bottom d-flex align-items-center gap-2">
+              <i class="bi bi-check-lg text-success fw-bold"></i> Treat borrowed and rented items with the highest care.
+            </li>
+            <li class="py-2 border-bottom d-flex align-items-center gap-2">
+              <i class="bi bi-check-lg text-success fw-bold"></i> Accurately describe item conditions with zero deception.
+            </li>
+            <li class="py-2 border-bottom d-flex align-items-center gap-2">
+              <i class="bi bi-check-lg text-success fw-bold"></i> Honor return deadlines and coordinate respectfully.
+            </li>
+            <li class="py-2 d-flex align-items-center gap-2">
+              <i class="bi bi-check-lg text-success fw-bold"></i> Keep Free Borrowings 100% free of unauthorized rental fees.
+            </li>
+          </ul>
+          <a href="{% url 'core:safety' %}" class="btn btn-sl-navy w-100">
+            Read Full Safety Guidelines <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 bg-teal text-white" style="background: linear-gradient(135deg, var(--sl-teal) 0%, #0F766E 100%);">
+  <div class="container text-center py-3">
+    <h2 class="h2 fw-bold mb-2">Have items lying idle in your home or shop?</h2>
+    <p class="fs-5 text-white-50 mb-4 max-w-600 mx-auto">
+      Put them to work. Start earning from rentals or help someone in Pune for free today.
+    </p>
+    <a href="{% url 'listings:create' %}" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow">
+      <i class="bi bi-plus-circle-fill text-teal me-2"></i> List Your First Item Now
+    </a>
+  </div>
+</section>
+{% endblock %}

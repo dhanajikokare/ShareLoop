@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Handover & Return Evidence — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Handover & Return Evidence</h1>
+      <p class="text-muted small mb-0">Private visual documentation protecting your transactions in Pune</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Date & Time</th>
+            <th>Type</th>
+            <th>Associated Transaction</th>
+            <th>Assessed Condition</th>
+            <th>Logged By</th>
+            <th>Notes & Photo</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for log in logs %}
+            <tr>
+              <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
+              <td><span class="badge bg-light text-dark border">{{ log.get_log_type_display }}</span></td>
+              <td>
+                {% if log.rental_booking %}
+                  <a href="{% url 'rentals:rental_detail' log.rental_booking.id %}" class="fw-semibold text-dark text-decoration-none">
+                    Rental #{{ log.rental_booking.booking_reference }}
+                  </a>
+                {% elif log.borrow_request %}
+                  <a href="{% url 'borrowing:borrow_detail' log.borrow_request.id %}" class="fw-semibold text-dark text-decoration-none">
+                    Borrow #{{ log.borrow_request.request_reference }}
+                  </a>
+                {% elif log.sales_order %}
+                  <a href="{% url 'orders:order_detail' log.sales_order.id %}" class="fw-semibold text-dark text-decoration-none">
+                    Order #{{ log.sales_order.order_number }}
+                  </a>
+                {% endif %}
+              </td>
+              <td><strong>{{ log.get_item_condition_display }}</strong></td>
+              <td>{{ log.recorded_by.display_name }}</td>
+              <td>
+                {% if log.notes %}<div class="text-secondary">{{ log.notes|truncatechars:60 }}</div>{% endif %}
+                {% if log.evidence_photo %}
+                  <a href="{{ log.evidence_photo.url }}" target="_blank" class="badge bg-teal-subtle text-teal text-decoration-none mt-1 d-inline-block">
+                    <i class="bi bi-image me-1"></i> View Photo
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-camera fs-2 d-block mb-2 opacity-50"></i>
+                No evidence logs recorded yet. Photos taken at pickup/return will be stored here privately.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

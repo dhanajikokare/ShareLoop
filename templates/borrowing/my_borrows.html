@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}My Borrow Requests — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">My Free Borrow Requests</h1>
+      <p class="text-muted small mb-0">Track items you have borrowed from community members in Pune</p>
+    </div>
+    <a href="{% url 'listings:browse' %}?mode=borrow" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-heart-fill me-1"></i> Browse More Free Items
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Reference</th>
+            <th>Item</th>
+            <th>Owner</th>
+            <th>Borrowing Window</th>
+            <th>Rental Charge</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for r in requests %}
+            <tr>
+              <td class="fw-bold">{{ r.request_reference }}</td>
+              <td>
+                <a href="{% url 'listings:detail' r.listing.id r.listing.slug %}" class="text-dark text-decoration-none fw-semibold">
+                  {{ r.listing.title }}
+                </a>
+              </td>
+              <td>{{ r.listing.owner.display_name }}</td>
+              <td>{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M Y" }} ({{ r.total_days }}d)</td>
+              <td><span class="badge bg-success-subtle text-success">₹0 (Free Loan)</span></td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ r.get_status_display }}</span>
+              </td>
+              <td class="text-end">
+                <a href="{% url 'borrowing:borrow_detail' r.id %}" class="btn btn-sm btn-sl-navy py-1 px-3">
+                  View Request
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                No free borrow requests yet.
+                <div class="mt-2">
+                  <a href="{% url 'listings:browse' %}?mode=borrow" class="btn btn-success btn-sm">Browse Free Items</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

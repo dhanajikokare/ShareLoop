@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}How ShareLoop Works — Rent, Borrow & Sell Guide{% endblock %}
+
+{% block content %}
+<div class="bg-navy py-5 text-white" style="background-color: var(--sl-navy);">
+  <div class="container text-center">
+    <h1 class="fw-bold mb-2">How ShareLoop Works</h1>
+    <p class="text-white-50 fs-5 mb-0">Pune's community platform for renting, lending, and buying goods sustainably</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <!-- Nav Pills for the 3 modes -->
+  <ul class="nav nav-pills justify-content-center mb-5 gap-2" id="workflowTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active px-4 py-2 fw-bold" id="rent-tab" data-bs-toggle="pill" data-bs-target="#rent-pane" type="button" role="tab">
+        <i class="bi bi-clock-history me-2"></i> 1. Rent Workflow
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-4 py-2 fw-bold text-success" id="borrow-tab" data-bs-toggle="pill" data-bs-target="#borrow-pane" type="button" role="tab">
+        <i class="bi bi-heart-pulse-fill me-2"></i> 2. Free Borrow Workflow
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-4 py-2 fw-bold text-warning-emphasis" id="sell-tab" data-bs-toggle="pill" data-bs-target="#sell-pane" type="button" role="tab">
+        <i class="bi bi-tag-fill me-2"></i> 3. Buy & Sell Workflow
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Contents -->
+  <div class="tab-content" id="workflowTabContent">
+    <!-- Rent Pane -->
+    <div class="tab-pane fade show active" id="rent-pane" role="tabpanel">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+          <span class="sl-badge-mode badge-mode-rent mb-2">Paid Rental Model</span>
+          <h2 class="h3 fw-bold mb-3">Renting Products On ShareLoop</h2>
+          <p class="text-secondary">
+            Renting allows owners to monetize underutilized high-value items (cameras, tools, electronics, event supplies) while providing renters with affordable short-term access.
+          </p>
+          <div class="d-flex flex-column gap-3 mt-4">
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">1</div>
+              <div>
+                <h6 class="fw-bold mb-1">Select Dates & Instant Cost Preview</h6>
+                <p class="small text-muted mb-0">Choose your start and return dates. The system verifies real-time calendar availability, calculates daily rates, refundable security deposit, and transparent platform commission.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">2</div>
+              <div>
+                <h6 class="fw-bold mb-1">Owner Review & Acceptance</h6>
+                <p class="small text-muted mb-0">The owner receives an instant notification with your rental duration and message. Owners can accept or decline according to their schedule.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">3</div>
+              <div>
+                <h6 class="fw-bold mb-1">Payment & Photo Handover Log</h6>
+                <p class="small text-muted mb-0">Upon acceptance, secure payment is completed. At pickup, both parties log the item's condition with photo evidence in the private Handover Log.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">4</div>
+              <div>
+                <h6 class="fw-bold mb-1">Return, Deposit Release & Review</h6>
+                <p class="small text-muted mb-0">Return the item in agreed condition, log the return evidence, release the security deposit, and exchange authentic community reviews.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card p-4 border-0 shadow-sm bg-light rounded-4">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-shield-check me-2"></i> Rental Transparency Rules</h5>
+            <ul class="list-unstyled small d-flex flex-column gap-2 text-secondary mb-4">
+              <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Zero Overlapping Bookings:</strong> The system locks calendar dates automatically to prevent duplicate or conflict reservations.</li>
+              <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Deposits Are Protected:</strong> Refundable security deposits are never treated as revenue and are reconciled upon return.</li>
+              <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Cancellation Policies:</strong> Disclosed upfront before any booking request is submitted.</li>
+            </ul>
+            <a href="{% url 'listings:browse' %}?mode=rent" class="btn btn-primary fw-semibold">Browse Available Rentals</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Borrow Pane -->
+    <div class="tab-pane fade" id="borrow-pane" role="tabpanel">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+          <span class="sl-badge-mode badge-mode-borrow mb-2">Community Goodwill</span>
+          <h2 class="h3 fw-bold mb-3">100% Free Peer Borrowing</h2>
+          <p class="text-secondary">
+            Borrowing is built entirely on neighborhood trust and mutual aid. Perfect for books, study guides, simple DIY hand tools, sports gear, and camping equipment.
+          </p>
+          <div class="d-flex flex-column gap-3 mt-4">
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">1</div>
+              <div>
+                <h6 class="fw-bold mb-1">Zero Rental Fees Guaranteed</h6>
+                <p class="small text-muted mb-0">Borrow listings are strictly free of rental fees. If an owner requires an optional refundable deposit, it is transparently stated upfront.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">2</div>
+              <div>
+                <h6 class="fw-bold mb-1">Request & Agree to Care Terms</h6>
+                <p class="small text-muted mb-0">Select your borrowing days and share a respectful message explaining how you will care for the item. Agree to return on time.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">3</div>
+              <div>
+                <h6 class="fw-bold mb-1">Friendly Local Pickup & Return</h6>
+                <p class="small text-muted mb-0">Meet your neighbor in Pune, record the handover note, and return the item cleanly on or before the agreed date.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card p-4 border-0 shadow-sm bg-success bg-opacity-10 rounded-4 border border-success">
+            <h5 class="fw-bold text-success mb-3"><i class="bi bi-heart-fill me-2"></i> The Borrowing Code</h5>
+            <p class="small text-secondary mb-3">
+              "Never convert a free loan into a transaction." Borrowing builds social capital in Pune. Members who fail to return borrowed items or mistreat items face immediate account suspension.
+            </p>
+            <a href="{% url 'listings:browse' %}?mode=borrow" class="btn btn-success fw-semibold">Browse Free Borrow Items</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sell Pane -->
+    <div class="tab-pane fade" id="sell-pane" role="tabpanel">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+          <span class="sl-badge-mode badge-mode-sell mb-2">Direct Local Commerce</span>
+          <h2 class="h3 fw-bold mb-3">Buy & Sell Products Securely</h2>
+          <p class="text-secondary">
+            Give items a second life or sell inventory directly from your local shop or home in Pune.
+          </p>
+          <div class="d-flex flex-column gap-3 mt-4">
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">1</div>
+              <div>
+                <h6 class="fw-bold mb-1">Real-Time Inventory Lock</h6>
+                <p class="small text-muted mb-0">When a buyer places an order, the system locks and deducts inventory safely using database transactions to prevent overselling.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">2</div>
+              <div>
+                <h6 class="fw-bold mb-1">Pickup or Delivery Coordination</h6>
+                <p class="small text-muted mb-0">Buyers select self-pickup at the seller's Pune locality or coordinate direct delivery.</p>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <div class="badge rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 1rem;">3</div>
+              <div>
+                <h6 class="fw-bold mb-1">Order Status Tracking & Reviews</h6>
+                <p class="small text-muted mb-0">Track order statuses (Confirmed, Processing, Ready for Pickup, Completed) and review the transaction upon handover.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card p-4 border-0 shadow-sm bg-warning bg-opacity-10 rounded-4 border border-warning">
+            <h5 class="fw-bold text-warning-emphasis mb-3"><i class="bi bi-tag-fill me-2"></i> Inventory Integrity</h5>
+            <p class="small text-secondary mb-3">
+              A sold item cannot remain available for new rentals or borrowing unless the seller has distinct physical units in stock.
+            </p>
+            <a href="{% url 'listings:browse' %}?mode=sell" class="btn btn-warning fw-semibold text-dark">Browse Items for Sale</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

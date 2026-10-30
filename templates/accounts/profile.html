@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-900">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold mb-1">Account & Profile Settings</h2>
+      <p class="text-muted small mb-0">Manage your contact information, Pune addresses, and seller shop details</p>
+    </div>
+    <div>
+      {% if user.is_business_seller %}
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fs-6">
+          <i class="bi bi-shop me-1"></i> Business Seller
+        </span>
+      {% else %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">
+          <i class="bi bi-person-check me-1"></i> Community Member
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Personal & Shop info -->
+    <div class="col-lg-7">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person-fill text-teal me-2"></i> Personal Details</h5>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold">First Name</label>
+              {{ u_form.first_name }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold">Last Name</label>
+              {{ u_form.last_name }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            {{ u_form.phone_number }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Profile Photo / Avatar</label>
+            {{ u_form.avatar }}
+            {% if user.avatar %}
+              <div class="mt-2">
+                <img src="{{ user.avatar.url }}" alt="avatar" class="rounded-circle border" width="60" height="60" style="object-fit:cover;">
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Short Bio</label>
+            {{ u_form.bio }}
+          </div>
+
+          {% if user.is_business_seller %}
+            <hr class="my-4">
+            <h5 class="fw-bold mb-3 text-navy"><i class="bi bi-shop text-primary me-2"></i> Business Shop Information</h5>
+            
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Shop Name</label>
+              {{ p_form.shop_name }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Shop Description</label>
+              {{ p_form.shop_description }}
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label small fw-semibold">GSTIN (Optional)</label>
+                {{ p_form.gst_number }}
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small fw-semibold">Shop Registration No.</label>
+                {{ p_form.business_registration_number }}
+              </div>
+            </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-sl-teal px-4 py-2 fw-semibold">
+            <i class="bi bi-check-lg me-1"></i> Save Profile Changes
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Addresses -->
+    <div class="col-lg-5">
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-warning me-2"></i> Saved Addresses</h5>
+          <button class="btn btn-sm btn-outline-teal" type="button" data-bs-toggle="collapse" data-bs-target="#newAddressCollapse">
+            <i class="bi bi-plus-lg"></i> Add New
+          </button>
+        </div>
+
+        <!-- Add Address Collapse Form -->
+        <div class="collapse mb-4" id="newAddressCollapse">
+          <div class="p-3 bg-light rounded-3 border">
+            <h6 class="fw-bold small mb-3">New Pune Locality Address</h6>
+            <form method="post" action="{% url 'accounts:address_add' %}">
+              {% csrf_token %}
+              <div class="mb-2">
+                <label class="form-label small">Full Name</label>
+                {{ addr_form.full_name }}
+              </div>
+              <div class="mb-2">
+                <label class="form-label small">Phone</label>
+                {{ addr_form.phone_number }}
+              </div>
+              <div class="mb-2">
+                <label class="form-label small">Street Address</label>
+                {{ addr_form.address_line1 }}
+              </div>
+              <div class="mb-2">
+                <label class="form-label small">Pune Locality</label>
+                {{ addr_form.locality }}
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label small">City</label>
+                  {{ addr_form.city }}
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Pincode</label>
+                  {{ addr_form.pincode }}
+                </div>
+              </div>
+              <div class="form-check mb-3">
+                {{ addr_form.is_default }}
+                <label class="form-check-label small" for="{{ addr_form.is_default.id_for_label }}">Set as default address</label>
+              </div>
+              <button type="submit" class="btn btn-sm btn-sl-navy w-100">Save Address</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Existing Addresses List -->
+        {% for addr in addresses %}
+          <div class="p-3 border rounded-3 mb-2 bg-white position-relative">
+            {% if addr.is_default %}
+              <span class="badge bg-teal-subtle text-teal small position-absolute top-0 end-0 m-2">Default</span>
+            {% endif %}
+            <div class="fw-bold small">{{ addr.full_name }}</div>
+            <div class="small text-secondary">{{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %}</div>
+            <div class="small text-muted">{{ addr.locality }}, {{ addr.city }} - {{ addr.pincode }}</div>
+            <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ addr.phone_number }}</div>
+
+            <form method="post" action="{% url 'accounts:address_delete' addr.id %}" class="mt-2 text-end">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none p-0" onclick="return confirm('Delete this address?');">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            </form>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">
+            No saved addresses. Add your Pune pickup or delivery address.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Edit Listing: {{ listing.title }}{% else %}List an Item — ShareLoop Pune{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-800">
+  <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+    <div class="mb-4">
+      <h1 class="h3 fw-bold mb-1">{% if is_edit %}Edit Your Listing{% else %}List an Item on ShareLoop{% endif %}</h1>
+      <p class="text-muted small mb-0">Share what you have in Pune: choose whether you want to Rent, Borrow (Free), Sell, or offer multiple choices.</p>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger small p-3 rounded-3 mb-4">
+        {% for error in form.non_field_errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Section 1: Item Basic Info -->
+      <h5 class="fw-bold mb-3 text-navy"><i class="bi bi-box-seam text-teal me-2"></i> 1. Product Information</h5>
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Item Title *</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold">Category *</label>
+          {{ form.category }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold">Item Condition *</label>
+          {{ form.item_condition }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Detailed Description & Specifications *</label>
+        {{ form.description }}
+        {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors.0 }}</div>{% endif %}
+      </div>
+
+      <!-- Photo Upload & Preview -->
+      <div class="mb-4">
+        <label class="form-label small fw-semibold">Product Photograph</label>
+        {{ form.primary_image }}
+        <div id="image_preview_box" class="mt-2"></div>
+      </div>
+
+      <hr class="my-4">
+
+      <!-- Section 2: Location -->
+      <h5 class="fw-bold mb-3 text-navy"><i class="bi bi-geo-alt-fill text-warning me-2"></i> 2. Pune Location & Handover Options</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-sm-8">
+          <label class="form-label small fw-semibold">Pune Locality / Area *</label>
+          {{ form.locality }}
+          <div class="form-text small">e.g. Kothrud, Baner, Hinjewadi, Viman Nagar</div>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label small fw-semibold">Pincode *</label>
+          {{ form.pincode }}
+        </div>
+      </div>
+
+      <div class="d-flex gap-4 mb-4">
+        <div class="form-check">
+          {{ form.pickup_available }}
+          <label class="form-check-label small" for="{{ form.pickup_available.id_for_label }}">Available for Self Pickup</label>
+        </div>
+        <div class="form-check">
+          {{ form.delivery_available }}
+          <label class="form-check-label small" for="{{ form.delivery_available.id_for_label }}">Delivery Coordination Available</label>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <!-- Section 3: Marketplace Modes -->
+      <h5 class="fw-bold mb-2 text-navy"><i class="bi bi-toggles text-primary me-2"></i> 3. Choose Sharing Modes</h5>
+      <p class="small text-muted mb-4">Enable at least one mode. You can enable multiple modes if you are flexible!</p>
+
+      <!-- Rent Mode Accordion/Card -->
+      <div class="card p-3 rounded-3 mb-3 border-start border-4 border-primary">
+        <div class="form-check form-switch mb-2">
+          {{ form.can_rent }}
+          <label class="form-check-label fw-bold text-primary" for="id_can_rent">
+            <i class="bi bi-clock me-1"></i> Mode A: Enable Renting (Earn Money)
+          </label>
+        </div>
+        <div class="row g-2 mt-2">
+          <div class="col-sm-6">
+            <label class="form-label small">Rent Price Per Day (₹) *</label>
+            {{ form.rent_price_per_day }}
+            {% if form.rent_price_per_day.errors %}<div class="text-danger small">{{ form.rent_price_per_day.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Rent Security Deposit (₹)</label>
+            {{ form.rent_security_deposit }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Min Rental Days</label>
+            {{ form.min_rental_days }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Max Rental Days</label>
+            {{ form.max_rental_days }}
+          </div>
+          <div class="col-12 mt-2">
+            <label class="form-label small">Cancellation Policy</label>
+            {{ form.rental_cancellation_policy }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Borrow Mode Card -->
+      <div class="card p-3 rounded-3 mb-3 border-start border-4 border-success">
+        <div class="form-check form-switch mb-2">
+          {{ form.can_borrow }}
+          <label class="form-check-label fw-bold text-success" for="id_can_borrow">
+            <i class="bi bi-heart-fill me-1"></i> Mode B: Enable Community Borrowing (100% Free Loan)
+          </label>
+        </div>
+        <div class="row g-2 mt-2">
+          <div class="col-sm-6">
+            <label class="form-label small">Max Allowed Days to Borrow</label>
+            {{ form.borrow_max_days }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Refundable Deposit (Optional ₹)</label>
+            {{ form.borrow_security_deposit }}
+          </div>
+          <div class="col-12 mt-2">
+            <label class="form-label small">Return Conditions & Handling Guidelines</label>
+            {{ form.borrow_return_conditions }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sell Mode Card -->
+      <div class="card p-3 rounded-3 mb-4 border-start border-4 border-warning">
+        <div class="form-check form-switch mb-2">
+          {{ form.can_sell }}
+          <label class="form-check-label fw-bold text-warning-emphasis" for="id_can_sell">
+            <i class="bi bi-tag-fill me-1"></i> Mode C: Enable Selling (Direct Purchase)
+          </label>
+        </div>
+        <div class="row g-2 mt-2">
+          <div class="col-sm-6">
+            <label class="form-label small">Selling Price (₹) *</label>
+            {{ form.sell_price }}
+            {% if form.sell_price.errors %}<div class="text-danger small">{{ form.sell_price.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Physical Quantity In Stock *</label>
+            {{ form.quantity }}
+          </div>
+          <div class="col-12 mt-2">
+            <div class="form-check">
+              {{ form.sell_price_negotiable }}
+              <label class="form-check-label small" for="{{ form.sell_price_negotiable.id_for_label }}">Price is Negotiable</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+        <a href="{% url 'listings:my_listings' %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-sl-teal px-5 py-2 fw-bold">
+          {% if is_edit %}Save Changes{% else %}Publish Listing Now{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

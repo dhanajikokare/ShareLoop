@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Log In — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+        <div class="text-center mb-4">
+          <div class="sl-brand-icon mx-auto mb-2" style="width: 44px; height: 44px; font-size: 1.3rem;">
+            <i class="bi bi-arrow-repeat"></i>
+          </div>
+          <h2 class="h3 fw-bold">Welcome Back</h2>
+          <p class="text-muted small">Log in to your ShareLoop account</p>
+        </div>
+
+        <form method="post" action="{% url 'accounts:login' %}">
+          {% csrf_token %}
+          {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter your username" required autofocus>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-semibold mb-0">Password</label>
+              <a href="{% url 'accounts:forgot_password' %}" class="small text-teal text-decoration-none fw-medium" id="forgotPasswordLink">Forgot Password?</a>
+            </div>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+
+          <button type="submit" class="btn btn-sl-teal w-100 py-2 fw-semibold mt-3">
+            <i class="bi bi-box-arrow-in-right me-2"></i> Log In
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top small text-muted">
+          Don't have an account yet? <a href="{% url 'accounts:register' %}" class="text-teal fw-bold">Sign up for free</a>
+        </div>
+
+        <!-- Demo credentials info for testing -->
+        <div class="alert alert-light border mt-4 p-2 small text-muted">
+          <strong>Demo Login Credentials:</strong><br>
+          Admin: <code>admin</code> / <code>Admin@123</code><br>
+          Business Seller: <code>pune_gear_hub</code> / <code>Seller@123</code><br>
+          Individual: <code>rahul_deshmukh</code> / <code>User@123</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

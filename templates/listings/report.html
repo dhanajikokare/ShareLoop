@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Report Listing — ShareLoop{% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-700">
+  <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="fs-2 text-danger"><i class="bi bi-shield-exclamation"></i></div>
+      <div>
+        <h1 class="h4 fw-bold mb-0">Report Listing</h1>
+        <p class="text-muted small mb-0">Submit a violation or dispute regarding: <strong>{{ listing.title }}</strong></p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Reason for Report *</label>
+        {{ form.reason }}
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label small fw-semibold">Detailed Explanation *</label>
+        {{ form.description }}
+        <div class="form-text small">Please describe what you observed (e.g. prohibited item, fake photos, suspicious pricing, unreturned item).</div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'listings:detail' listing.id listing.slug %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+          <i class="bi bi-flag-fill me-1"></i> Submit Report to Admin
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

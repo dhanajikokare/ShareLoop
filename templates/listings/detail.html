@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ listing.title }} — ShareLoop Pune{% endblock %}
+{% block meta_description %}{{ listing.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 sl-main-container">
+  <!-- Breadcrumb -->
+  <nav class="sl-breadcrumb-nav" aria-label="breadcrumb">
+    <ol class="breadcrumb sl-breadcrumb mb-3">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'listings:browse' %}" class="text-decoration-none">Browse</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'listings:browse' %}?category={{ listing.category.slug }}" class="text-decoration-none">{{ listing.category.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page" title="{{ listing.title }}" aria-label="{{ listing.title }}">{{ listing.title }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Left Column: Media & Product Details -->
+    <div class="col-lg-7">
+      <!-- Main Photo Card -->
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div style="background-color: #F8FAFC; height: 380px;" class="d-flex align-items-center justify-content-center position-relative">
+          {% if listing.primary_image %}
+            <img src="{{ listing.primary_image.image.url }}" alt="{{ listing.title }}" class="w-100 h-100" style="object-fit: contain;" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+          {% else %}
+            <img src="{% static 'images/placeholder-product.svg' %}" alt="{{ listing.title }}" class="w-100 h-100" style="object-fit: contain;">
+          {% endif %}
+
+          <!-- Modes Overlay -->
+          <div class="position-absolute top-0 start-0 m-3 d-flex flex-wrap gap-2" style="z-index: 2;">
+            {% if listing.can_rent %}<span class="sl-badge-mode badge-mode-rent"><i class="bi bi-clock"></i> Rent</span>{% endif %}
+            {% if listing.can_borrow %}<span class="sl-badge-mode badge-mode-borrow"><i class="bi bi-heart-fill"></i> Free to Borrow</span>{% endif %}
+            {% if listing.can_sell %}<span class="sl-badge-mode badge-mode-sell"><i class="bi bi-tag-fill"></i> For Sale</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Additional Images Thumbnail Gallery if any -->
+        {% if listing.images.count > 1 %}
+          <div class="p-3 d-flex gap-2 border-top overflow-x-auto bg-white">
+            {% for img in listing.images.all %}
+              <img src="{{ img.image.url }}" alt="thumb" class="rounded border" width="70" height="70" style="object-fit: cover;" onerror="this.onerror=null;this.src='{% static 'images/placeholder-product.svg' %}';">
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Title & Core Details -->
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+          <h1 class="h3 fw-bold mb-0 text-break" style="word-break: break-word;">{{ listing.title }}</h1>
+          {% if is_owner %}
+            <div class="d-flex gap-2">
+              <a href="{% url 'listings:edit' listing.id %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Metadata Pills -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge bg-light text-dark border">
+            <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ listing.locality }}, {{ listing.city }}
+          </span>
+          <span class="badge bg-light text-dark border">
+            <i class="bi bi-tags-fill text-teal me-1"></i>{{ listing.category.name }}
+          </span>
+          <span class="badge bg-light text-dark border">
+            Condition: <strong>{{ listing.get_item_condition_display }}</strong>
+          </span>
+          {% if listing.pickup_available %}
+            <span class="badge bg-light text-dark border"><i class="bi bi-box-arrow-up me-1"></i> Self Pickup</span>
+          {% endif %}
+          {% if listing.delivery_available %}
+            <span class="badge bg-light text-dark border"><i class="bi bi-truck me-1"></i> Delivery Coordination</span>
+          {% endif %}
+        </div>
+
+        <h5 class="fw-bold fs-6 mb-2">Description & Inclusions</h5>
+        <p class="text-secondary" style="white-space: pre-line; line-height: 1.6;">{{ listing.description }}</p>
+
+        <!-- Terms & Cancellation Policies -->
+        {% if listing.can_rent and listing.rental_cancellation_policy %}
+          <div class="p-3 bg-light rounded-3 mt-3 border">
+            <div class="fw-bold small text-navy"><i class="bi bi-info-circle me-1"></i> Rental Cancellation Policy</div>
+            <div class="small text-muted">{{ listing.rental_cancellation_policy }}</div>
+          </div>
+        {% endif %}
+
+        {% if listing.can_borrow and listing.borrow_return_conditions %}
+          <div class="p-3 bg-success-subtle rounded-3 mt-3 border border-success-subtle">
+            <div class="fw-bold small text-success"><i class="bi bi-heart-fill me-1"></i> Free Borrow Return Conditions</div>
+            <div class="small text-secondary">{{ listing.borrow_return_conditions }}</div>
+          </div>
+        {% endif %}
+
+        <!-- Report Button -->
+        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+          <span class="small text-muted">Listed on {{ listing.created_at|date:"d M Y" }}</span>
+          <a href="{% url 'listings:report' listing.id %}" class="small text-danger text-decoration-none">
+            <i class="bi bi-flag me-1"></i> Report Suspicious Listing
+          </a>
+        </div>
+      </div>
+
+      <!-- Seller Info Card -->
+      <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+        <h5 class="fw-bold fs-6 mb-3">Item Owner in Pune</h5>
+        <div class="d-flex align-items-center gap-3">
+          {% if listing.owner.avatar %}
+            <img src="{{ listing.owner.avatar.url }}" alt="{{ listing.owner.username }}" class="rounded-circle border" width="56" height="56" style="object-fit:cover;">
+          {% else %}
+            <div class="bg-teal text-white rounded-circle d-flex align-items-center justify-content-center fs-4 fw-bold" style="width: 56px; height: 56px; background-color: var(--sl-teal);">
+              {{ listing.owner.display_name|slice:":1"|upper }}
+            </div>
+          {% endif %}
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0">
+                <a href="{% url 'accounts:public_profile' listing.owner.username %}" class="text-dark text-decoration-none">
+                  {{ listing.owner.display_name }}
+                </a>
+              </h6>
+              {% if listing.owner.is_business_seller %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small"><i class="bi bi-shop me-1"></i>Business Seller</span>
+              {% else %}
+                <span class="badge bg-light text-secondary border small"><i class="bi bi-person me-1"></i>Community Member</span>
+              {% endif %}
+            </div>
+            <div class="small text-muted">{{ listing.owner.get_user_type_display }} &middot; {{ listing.locality }}, Pune</div>
+          </div>
+          <a href="{% url 'accounts:public_profile' listing.owner.username %}" class="btn btn-sm btn-outline-teal">
+            View Profile
+          </a>
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h5 class="fw-bold fs-6 mb-3">Reviews for this item ({{ reviews.count }})</h5>
+        {% for r in reviews %}
+          <div class="border-bottom py-2 {% if forloop.last %}border-0 pb-0{% endif %}">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ r.reviewer.display_name }}</span>
+              <span class="text-warning small">
+                {% for _ in "12345"|make_list %}
+                  {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+              </span>
+            </div>
+            <p class="small text-secondary mb-1">{{ r.comment }}</p>
+            <span class="text-muted" style="font-size: 0.7rem;">{{ r.created_at|date:"d M Y" }}</span>
+          </div>
+        {% empty %}
+          <p class="small text-muted mb-0">No reviews yet for this listing. Be the first to complete a transaction!</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Transaction Cards (Rent, Borrow, Sell) -->
+    <div class="col-lg-5">
+      <div class="sl-sticky-sidebar">
+
+        {% if is_owner %}
+          <!-- Owner View Notice -->
+          <div class="alert alert-info border shadow-sm rounded-4 p-4 mb-4">
+            <h5 class="fw-bold"><i class="bi bi-person-badge-fill me-2"></i> This is your listing</h5>
+            <p class="small mb-3">You own this item. You cannot rent, borrow, or buy your own product.</p>
+            <div class="d-flex gap-2">
+              <a href="{% url 'listings:edit' listing.id %}" class="btn btn-sm btn-primary">Edit Listing</a>
+              <a href="{% url 'accounts:dashboard' %}" class="btn btn-sm btn-outline-secondary">Go to Dashboard</a>
+            </div>
+          </div>
+        {% else %}
+
+          <!-- Option 1: Renting Card -->
+          {% if listing.can_rent %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 border-top border-4 border-primary">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="sl-badge-mode badge-mode-rent"><i class="bi bi-clock"></i> Option 1: Rent</span>
+                <div>
+                  <span class="fs-4 fw-bold text-navy">₹{{ listing.rent_price_per_day|floatformat:0 }}</span>
+                  <span class="text-muted small">/ day</span>
+                </div>
+              </div>
+
+              <!-- Cost attributes hidden values for live calculator -->
+              <div id="daily_rate_val" data-rate="{{ listing.rent_price_per_day }}"></div>
+              <div id="security_deposit_val" data-deposit="{{ listing.rent_security_deposit }}"></div>
+              <div id="comm_pct_val" data-pct="{{ PLATFORM_COMMISSION_PERCENTAGE }}"></div>
+
+              <div class="bg-light p-3 rounded-3 small mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Security Deposit (Refundable):</span>
+                  <span class="fw-semibold">₹{{ listing.rent_security_deposit|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Rental Duration Bounds:</span>
+                  <span>{{ listing.min_rental_days }} to {{ listing.max_rental_days }} days</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Platform Facilitation:</span>
+                  <span>{{ PLATFORM_COMMISSION_PERCENTAGE }}%</span>
+                </div>
+              </div>
+
+              <!-- Booking Form -->
+              <form method="post" action="{% url 'rentals:create_booking' listing.id %}">
+                {% csrf_token %}
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Pickup Date</label>
+                    <input type="date" name="start_date" id="rental_start_date" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Return Date</label>
+                    <input type="date" name="end_date" id="rental_end_date" class="form-control form-control-sm" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Message to Owner</label>
+                  <textarea name="renter_message" class="form-control form-control-sm" rows="2" placeholder="Introduce yourself and coordinate pickup time in {{ listing.locality }}..."></textarea>
+                </div>
+
+                <!-- Dynamic Live Preview Box -->
+                <div class="p-3 bg-primary bg-opacity-10 rounded-3 mb-3 small border border-primary-subtle">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-secondary">Estimated Duration:</span>
+                    <span id="calc_days" class="fw-bold text-navy">-</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-secondary">Rental Charges:</span>
+                    <span id="calc_rental_fee" class="fw-semibold">-</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-secondary">Platform Fee:</span>
+                    <span id="calc_platform_fee" class="fw-semibold">-</span>
+                  </div>
+                  <div class="d-flex justify-content-between pt-1 border-top fw-bold">
+                    <span>Total Payable (Inc. Deposit):</span>
+                    <span id="calc_total_payable" class="text-primary">-</span>
+                  </div>
+                </div>
+
+                {% if user.is_authenticated %}
+                  <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-calendar-check-fill me-1"></i> Request to Rent
+                  </button>
+                {% else %}
+                  <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary w-100 fw-semibold">
+                    Log in to Request Rental
+                  </a>
+                {% endif %}
+              </form>
+            </div>
+          {% endif %}
+
+          <!-- Option 2: Free Borrow Card -->
+          {% if listing.can_borrow %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 border-top border-4 border-success">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="sl-badge-mode badge-mode-borrow"><i class="bi bi-heart-pulse-fill"></i> Option 2: Borrow</span>
+                <span class="fs-5 fw-bold text-success">100% Free</span>
+              </div>
+
+              <div class="alert alert-success bg-success bg-opacity-10 border-success small p-2 mb-3">
+                <i class="bi bi-info-circle-fill me-1"></i> This item is available for community loan at zero rental charge.
+              </div>
+
+              <div class="small text-muted mb-3">
+                <div>Max borrowing limit: <strong>{{ listing.borrow_max_days }} days</strong></div>
+                {% if listing.borrow_security_deposit > 0 %}
+                  <div>Refundable deposit: <strong>₹{{ listing.borrow_security_deposit|floatformat:0 }}</strong></div>
+                {% endif %}
+              </div>
+
+              <form method="post" action="{% url 'borrowing:create_request' listing.id %}">
+                {% csrf_token %}
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Borrow From</label>
+                    <input type="date" name="start_date" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Return By</label>
+                    <input type="date" name="end_date" class="form-control form-control-sm" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Purpose & Care Promise *</label>
+                  <textarea name="borrower_message" class="form-control form-control-sm" rows="2" required placeholder="Explain why you need this item and how you will care for it..."></textarea>
+                </div>
+
+                <div class="form-check mb-3 small">
+                  <input class="form-check-input" type="checkbox" name="agreed_to_terms" id="agree_terms" required>
+                  <label class="form-check-label" for="agree_terms">
+                    I agree to return this item on time and in the exact condition received.
+                  </label>
+                </div>
+
+                {% if user.is_authenticated %}
+                  <button type="submit" class="btn btn-success w-100 fw-semibold">
+                    <i class="bi bi-send-fill me-1"></i> Send Borrow Request
+                  </button>
+                {% else %}
+                  <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-success w-100 fw-semibold">
+                    Log in to Borrow Item
+                  </a>
+                {% endif %}
+              </form>
+            </div>
+          {% endif %}
+
+          <!-- Option 3: Buy & Sell Card -->
+          {% if listing.can_sell %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 border-top border-4 border-warning">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="sl-badge-mode badge-mode-sell"><i class="bi bi-tag-fill"></i> Option 3: Buy Now</span>
+                <span class="fs-4 fw-bold text-dark">₹{{ listing.sell_price|floatformat:0|intcomma }}</span>
+              </div>
+
+              <div class="small text-muted mb-3 d-flex justify-content-between">
+                <span>In Stock: <strong>{{ listing.quantity }} unit{{ listing.quantity|pluralize }}</strong></span>
+                {% if listing.sell_price_negotiable %}
+                  <span class="badge bg-light text-dark border">Price Negotiable</span>
+                {% endif %}
+              </div>
+
+              <form method="post" action="{% url 'orders:create_order' listing.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Quantity</label>
+                  <input type="number" name="quantity" class="form-control form-control-sm" min="1" max="{{ listing.quantity }}" value="1" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Fulfillment Method</label>
+                  <select name="fulfillment_type" class="form-select form-select-sm">
+                    <option value="PICKUP">Self Pickup in {{ listing.locality }} (Free)</option>
+                    {% if listing.delivery_available %}
+                      <option value="DELIVERY">Direct Delivery / Courier</option>
+                    {% endif %}
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Delivery Address / Pickup Note</label>
+                  <textarea name="delivery_address" class="form-control form-control-sm" rows="2" placeholder="Your address or preferred meeting spot in Pune..."></textarea>
+                </div>
+
+                {% if user.is_authenticated %}
+                  <button type="submit" class="btn btn-warning w-100 fw-semibold text-dark">
+                    <i class="bi bi-bag-check-fill me-1"></i> Place Order
+                  </button>
+                {% else %}
+                  <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-warning w-100 fw-semibold text-dark">
+                    Log in to Buy Item
+                  </a>
+                {% endif %}
+              </form>
+            </div>
+          {% endif %}
+
+        {% endif %}
+
+        <!-- Trust and Safety Guarantee Card -->
+        <div class="card p-3 border-0 bg-light rounded-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="fs-3 text-teal"><i class="bi bi-shield-check"></i></div>
+            <div class="small">
+              <div class="fw-bold text-navy">ShareLoop Trust Protection</div>
+              <div class="text-muted">Take handover photos to verify physical condition. Never send unverified upfront deposits.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
